@@ -25,6 +25,8 @@ _None yet._
 - **Backend:** Supabase for event storage and API only (no auth)
 - **User model:** Aggregator only — no user submissions, no accounts
 - **Categories:** music, arts, food, sports, festival, theater, workshop, market
+- **App name:** EventosGC (public-facing)
+- **Language:** Bilingual — parse and display both Spanish and English events as-is
 - **Supabase:** New project to be created in Phase 01
 - **Instagram targets:** Specific event promoter accounts (to be provided)
 - **Event parsing:** AI-assisted (LLM) to extract structured data from captions/messages
