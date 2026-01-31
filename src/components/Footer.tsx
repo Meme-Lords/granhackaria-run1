@@ -6,20 +6,20 @@ export function Footer() {
       </span>
       <nav className="flex items-center gap-4 sm:gap-6">
         <a
-          href="#"
-          className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)]"
+          href="/privacy"
+          className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
         >
           Privacy
         </a>
         <a
-          href="#"
-          className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)]"
+          href="/terms"
+          className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
         >
           Terms
         </a>
         <a
-          href="#"
-          className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)]"
+          href="mailto:hello@eventosgc.com"
+          className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
         >
           Contact
         </a>
