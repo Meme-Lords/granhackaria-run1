@@ -2,11 +2,19 @@
 
 ## Current Status
 
-**Project Phase:** Phase 02 — Wire Frontend to Supabase (completed)
+**Project Phase:** Phase 03 — Instagram Ingestion (completed)
 **Last Updated:** 2026-01-31
-**Next Step:** Execute Phase 03 (Instagram Ingestion)
+**Next Step:** Execute Phase 04 (Slack Ingestion)
 
 ## Completed Phases
+
+### Phase 03: Instagram Ingestion
+- Created ingestion types (`RawInstagramPost`, `RawEvent`)
+- Created Instagram fetcher via RapidAPI (`src/lib/ingestion/instagram.ts`)
+- Created AI-assisted event parser using Anthropic SDK (`src/lib/ingestion/parser.ts`)
+- Created end-to-end ingestion pipeline (`src/lib/ingestion/instagram-pipeline.ts`)
+- Added vitest with 17 tests covering fetcher, parser, and pipeline
+- See `.planning/phases/03-instagram-ingestion/02-SUMMARY.md`
 
 ### Phase 02: Wire Frontend to Supabase
 - Replaced hardcoded event data with live Supabase queries
@@ -32,7 +40,10 @@
 - Event query functions: getTodayEvents, getTomorrowEvents, getThisWeekEvents
 - Events table migration applied
 - Seed data in Supabase (9 sample events)
-- RapidAPI MCP configured for Instagram (instagram120)
+- Instagram ingestion pipeline (fetch -> AI parse -> Supabase upsert)
+- AI-assisted event parser using Claude API (Anthropic SDK)
+- Instagram fetcher via RapidAPI instagram120 endpoint
+- Vitest test suite (17 tests)
 - GSD and Ralphy tooling installed
 
 ## Decisions
@@ -45,7 +56,7 @@
 - **Language:** Bilingual — parse and display both Spanish and English events as-is
 - **Supabase:** New project to be created in Phase 01
 - **Instagram targets:** Specific event promoter accounts (to be provided)
-- **Event parsing:** AI-assisted using Claude Haiku (cheapest/fastest) for structured extraction
+- **Event parsing:** AI-assisted using Claude Sonnet for structured extraction
 - **Instagram fetch size:** 10 most recent posts per account per run
 - **Hosting:** Vercel (Hobby plan — cron runs once daily)
 - **Ingestion frequency:** Once daily (Hobby plan limitation)
@@ -53,8 +64,8 @@
 ## Notes
 
 - Homepage is now data-driven — events flow from Supabase to the UI
-- Instagram integration uses RapidAPI instagram120 endpoint (key already configured in .mcp.json)
+- Instagram ingestion pipeline is runnable as: `npx tsx src/lib/ingestion/instagram-pipeline.ts`
+- Required env vars for ingestion: RAPIDAPI_KEY, ANTHROPIC_API_KEY, INSTAGRAM_ACCOUNTS
 - Slack: existing community workspace, public channel, freeform text messages
 - Slack bot needs: channels:history + channels:read scopes
 - Will need bot token and channel ID when executing Phase 04
-- Will need Claude API key (or similar) for AI-assisted event parsing in Phases 03/04
