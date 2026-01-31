@@ -1,0 +1,12 @@
+# Ralphy Task File: granhackaria-run1
+# Add phases and plan_file paths as you create .planning/phases/XX-name/XX-PLAN.md
+# Copy structure from house-sitter/.ralphy/tasks.yaml for more phases.
+
+tasks:
+  - name: "Phase 01: Project Setup"
+    description: |
+      Execute Phase 01 plan: Set up project foundation.
+      Follow the plan at .planning/phases/01-project-setup/01-PLAN.md
+      Complete all tasks in the plan, create atomic commits per task, and generate SUMMARY.md when done.
+    plan_file: ".planning/phases/01-project-setup/01-PLAN.md"
+    phase: "01-project-setup"

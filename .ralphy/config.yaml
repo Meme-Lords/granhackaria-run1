@@ -1,0 +1,49 @@
+# Ralphy Configuration
+# https://github.com/michaelshimeles/ralphy
+
+# Project info (auto-detected, edit if needed)
+project:
+  name: "granhackaria-run1"
+  language: "TypeScript"
+  framework: "Next.js"
+  description: ""          # Add a brief description
+  tech:
+    - "Next.js"
+    - "Supabase"
+
+# Commands (auto-detected from package.json/pyproject.toml)
+commands:
+  test: ""
+  lint: "npm run lint"
+  build: "npm run build"
+
+# Rules - instructions the AI MUST follow
+# These are injected into every prompt
+rules:
+  - "Always use TypeScript strict mode"
+  - "Use server actions instead of API routes in Next.js"
+  - "Follow GSD (Get Shit Done) execution patterns from .agents/skills/gsd/"
+  - "When executing a phase, read the PLAN.md file first and follow it exactly"
+  - "Create atomic commits per task (one commit per task in the plan)"
+  - "After completing a phase, create a SUMMARY.md file in the phase directory"
+  - "Update .planning/STATE.md after each phase completion"
+  - "Handle deviations automatically: fix bugs immediately, implement missing critical functionality if under 5 minutes"
+  - "At checkpoints (human-action, human-verify), pause and wait for user input"
+  - "For checkpoint tasks, document what user needs to do and verify after completion"
+  - "Follow the execution context from @.agents/skills/gsd/workflows/execute-plan.md"
+  - "Reference project context from .planning/PROJECT.md, .planning/ROADMAP.md, and .planning/STATE.md"
+  - "All API endpoints must have input validation with Zod"
+  - "Follow the error handling patterns established in the codebase"
+  - "Use Supabase server client (@supabase/ssr) in Next.js; prefer Row Level Security (RLS) for data access"
+  #
+  # Skills/playbooks:
+  - "Before coding, read and follow any relevant skill/playbook docs under .agents/skills/gsd/"
+  - "Use GSD executor patterns for atomic commits and checkpoint handling"
+
+# Boundaries - files/folders the AI should not modify
+boundaries:
+  never_touch:
+    # Examples:
+    # - "src/legacy/**"
+    # - "migrations/**"
+    # - "*.lock"

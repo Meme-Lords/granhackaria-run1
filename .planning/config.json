@@ -1,0 +1,32 @@
+{
+  "project": {
+    "name": "granhackaria-run1",
+    "type": "web-application",
+    "framework": "nextjs",
+    "language": "typescript",
+    "tech": ["Next.js", "Supabase"]
+  },
+  "integrations": {
+    "supabase": {
+      "enabled": true
+    }
+  },
+  "workflow": {
+    "preferredCommitStyle": "conventional",
+    "contextBudget": {
+      "peak": 30,
+      "good": 50,
+      "degrading": 70
+    },
+    "execution": {
+      "parallelExecution": true,
+      "atomicCommits": true,
+      "verifyBeforeCommit": true
+    }
+  },
+  "preferences": {
+    "codeQuality": "high",
+    "testing": "essential",
+    "documentation": "comprehensive"
+  }
+}

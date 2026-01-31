@@ -1,0 +1,48 @@
+repos:
+  # Common, fast hygiene hooks (copied from rare-find)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  # Gitleaks: scan for secrets before the commit is created
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.28.0
+    hooks:
+      - id: gitleaks
+        name: gitleaks-staged
+        # pre-commit passes filenames by default; Gitleaks doesn't need them
+        pass_filenames: false
+        # Scan the staged (index) changes you're about to commit and redact output
+        args: [ "--staged", "--redact" ]
+        stages: [ "pre-commit" ]
+
+  # Local hooks: run npm audit before committing, and lint/build before pushing
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: npm audit
+        entry: npm audit
+        language: system
+        stages: [pre-commit]
+        pass_filenames: false
+        always_run: true
+
+      - id: lint
+        name: Lint
+        entry: npm run lint
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+
+      - id: build
+        name: Build
+        entry: npm run build
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true

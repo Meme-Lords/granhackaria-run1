@@ -1,0 +1,146 @@
+# Ralphy Task File: House & Pet Sitter Website - Phases 1-16 (Autonomous)
+# This file defines phases 1-16 for continuous execution without checkpoints
+
+tasks:
+  - name: "Phase 01: Project Setup & Foundation"
+    description: |
+      Execute Phase 01 plan: Set up Next.js 16 project with TypeScript, Tailwind CSS, and shadcn/ui foundation.
+      Follow the plan at .planning/phases/01-project-setup/01-PLAN.md
+      Complete all tasks in the plan, create atomic commits per task, and generate SUMMARY.md when done.
+    plan_file: ".planning/phases/01-project-setup/01-PLAN.md"
+    phase: "01-project-setup"
+
+  - name: "Phase 02: Core UI Components & Layout"
+    description: |
+      Execute Phase 02 plan: Build reusable UI components and page layout structure.
+      Follow the plan at .planning/phases/02-core-ui/02-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/02-core-ui/02-PLAN.md"
+    phase: "02-core-ui"
+    depends_on: ["Phase 01: Project Setup & Foundation"]
+
+  - name: "Phase 03: Hero Section"
+    description: |
+      Execute Phase 03 plan: Create compelling hero section with trust indicators and CTA.
+      Follow the plan at .planning/phases/03-hero-section/03-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/03-hero-section/03-PLAN.md"
+    phase: "03-hero-section"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 04: About Section"
+    description: |
+      Execute Phase 04 plan: Build personal introduction section that establishes trust.
+      Follow the plan at .planning/phases/04-about-section/04-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/04-about-section/04-PLAN.md"
+    phase: "04-about-section"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 05: Services Section"
+    description: |
+      Execute Phase 05 plan: Showcase services in clear, scannable format.
+      Follow the plan at .planning/phases/05-services-section/05-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/05-services-section/05-PLAN.md"
+    phase: "05-services-section"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 06: Pricing Section"
+    description: |
+      Execute Phase 06 plan: Display transparent pricing information.
+      Follow the plan at .planning/phases/06-pricing-section/06-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/06-pricing-section/06-PLAN.md"
+    phase: "06-pricing-section"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 07: How It Works Section"
+    description: |
+      Execute Phase 07 plan: Explain the booking process clearly.
+      Follow the plan at .planning/phases/07-how-it-works/07-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/07-how-it-works/07-PLAN.md"
+    phase: "07-how-it-works"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 08: Testimonials Section"
+    description: |
+      Execute Phase 08 plan: Build social proof through client testimonials.
+      Follow the plan at .planning/phases/08-testimonials/08-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/08-testimonials/08-PLAN.md"
+    phase: "08-testimonials"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 09: FAQ Section"
+    description: |
+      Execute Phase 09 plan: Address common concerns and improve SEO.
+      Follow the plan at .planning/phases/09-faq-section/09-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/09-faq-section/09-PLAN.md"
+    phase: "09-faq-section"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 10: Contact Form"
+    description: |
+      Execute Phase 10 plan: Provide alternative contact method for general inquiries.
+      Follow the plan at .planning/phases/10-contact-form/10-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/10-contact-form/10-PLAN.md"
+    phase: "10-contact-form"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 11: Calendly Integration"
+    description: |
+      Execute Phase 11 plan: Integrate Calendly booking system with payment.
+      Follow the plan at .planning/phases/11-calendly-integration/11-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/11-calendly-integration/11-PLAN.md"
+    phase: "11-calendly-integration"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 12: Trust Footer"
+    description: |
+      Execute Phase 12 plan: Display trust indicators throughout site and create footer.
+      Follow the plan at .planning/phases/12-trust-footer/12-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/12-trust-footer/12-PLAN.md"
+    phase: "12-trust-footer"
+    depends_on: ["Phase 02: Core UI Components & Layout"]
+
+  - name: "Phase 13: SEO Structured Data"
+    description: |
+      Execute Phase 13 plan: Implement AI-ready structured data for search engines.
+      Follow the plan at .planning/phases/13-seo-structured-data/13-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/13-seo-structured-data/13-PLAN.md"
+    phase: "13-seo-structured-data"
+    depends_on: ["Phase 12: Trust Footer"]
+
+  - name: "Phase 14: SEO Local"
+    description: |
+      Execute Phase 14 plan: Optimize for Gran Canaria local search.
+      Follow the plan at .planning/phases/14-seo-local/14-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/14-seo-local/14-PLAN.md"
+    phase: "14-seo-local"
+    depends_on: ["Phase 13: SEO Structured Data"]
+
+  - name: "Phase 15: SEO Technical"
+    description: |
+      Execute Phase 15 plan: Implement technical SEO elements.
+      Follow the plan at .planning/phases/15-seo-technical/15-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/15-seo-technical/15-PLAN.md"
+    phase: "15-seo-technical"
+    depends_on: ["Phase 14: SEO Local"]
+
+  - name: "Phase 16: Performance Optimization"
+    description: |
+      Execute Phase 16 plan: Ensure fast loading and optimal performance.
+      Follow the plan at .planning/phases/16-performance/16-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: ".planning/phases/16-performance/16-PLAN.md"
+    phase: "16-performance"
+    depends_on: ["Phase 15: SEO Technical"]
