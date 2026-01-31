@@ -1,12 +1,68 @@
-# Ralphy Task File: granhackaria-run1
-# Add phases and plan_file paths as you create .planning/phases/XX-name/XX-PLAN.md
-# Copy structure from house-sitter/.ralphy/tasks.yaml for more phases.
-
 tasks:
-  - name: "Phase 01: Project Setup"
+  - name: "Phase 01: Supabase Setup"
+    title: "Phase 01: Supabase Setup"
+    description: >
+      Execute Phase 01 plan: Set up Supabase foundation.
+
+      Follow the plan at .planning/phases/01-supabase-setup/02-PLAN.md
+
+      Complete all tasks in the plan, create atomic commits per task, and
+      generate SUMMARY.md when done.
+    plan_file: .planning/phases/01-supabase-setup/02-PLAN.md
+    phase: 01-supabase-setup
+    completed: false
+  - name: "Phase 02: Wire Frontend"
+    title: "Phase 02: Wire Frontend"
     description: |
-      Execute Phase 01 plan: Set up project foundation.
-      Follow the plan at .planning/phases/01-project-setup/01-PLAN.md
-      Complete all tasks in the plan, create atomic commits per task, and generate SUMMARY.md when done.
-    plan_file: ".planning/phases/01-project-setup/01-PLAN.md"
-    phase: "01-project-setup"
+      Execute Phase 02 plan: Wire frontend to Supabase and core UI.
+      Follow the plan at .planning/phases/02-wire-frontend/02-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: .planning/phases/02-wire-frontend/02-PLAN.md
+    phase: 02-wire-frontend
+    depends_on:
+      - "Phase 01: Supabase Setup"
+    completed: false
+  - name: "Phase 03: Instagram Ingestion"
+    title: "Phase 03: Instagram Ingestion"
+    description: |
+      Execute Phase 03 plan: Ingest and display Instagram content.
+      Follow the plan at .planning/phases/03-instagram-ingestion/02-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: .planning/phases/03-instagram-ingestion/02-PLAN.md
+    phase: 03-instagram-ingestion
+    depends_on:
+      - "Phase 02: Wire Frontend"
+    completed: false
+  - name: "Phase 04: Slack Ingestion"
+    title: "Phase 04: Slack Ingestion"
+    description: |
+      Execute Phase 04 plan: Ingest and integrate Slack content.
+      Follow the plan at .planning/phases/04-slack-ingestion/01-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: .planning/phases/04-slack-ingestion/01-PLAN.md
+    phase: 04-slack-ingestion
+    depends_on:
+      - "Phase 03: Instagram Ingestion"
+    completed: false
+  - name: "Phase 05: Scheduling"
+    title: "Phase 05: Scheduling"
+    description: |
+      Execute Phase 05 plan: Implement scheduling features.
+      Follow the plan at .planning/phases/05-scheduling/01-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: .planning/phases/05-scheduling/01-PLAN.md
+    phase: 05-scheduling
+    depends_on:
+      - "Phase 04: Slack Ingestion"
+    completed: false
+  - name: "Phase 06: Polish & Deploy"
+    title: "Phase 06: Polish & Deploy"
+    description: |
+      Execute Phase 06 plan: Polish UX and deploy.
+      Follow the plan at .planning/phases/06-polish-deploy/03-PLAN.md
+      Complete all tasks, create atomic commits, and generate SUMMARY.md.
+    plan_file: .planning/phases/06-polish-deploy/03-PLAN.md
+    phase: 06-polish-deploy
+    depends_on:
+      - "Phase 05: Scheduling"
+    completed: true
