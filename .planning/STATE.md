@@ -29,11 +29,16 @@ _None yet._
 - **Language:** Bilingual — parse and display both Spanish and English events as-is
 - **Supabase:** New project to be created in Phase 01
 - **Instagram targets:** Specific event promoter accounts (to be provided)
-- **Event parsing:** AI-assisted (LLM) to extract structured data from captions/messages
+- **Event parsing:** AI-assisted using Claude Haiku (cheapest/fastest) for structured extraction
+- **Instagram fetch size:** 10 most recent posts per account per run
+- **Hosting:** Vercel (Hobby plan — cron runs once daily)
+- **Ingestion frequency:** Once daily (Hobby plan limitation)
 
 ## Notes
 
 - Existing UI is static/hardcoded — needs to be wired to Supabase
 - Instagram integration uses RapidAPI instagram120 endpoint (key already configured in .mcp.json)
-- Slack workspace TBD — will need bot token or webhook URL
+- Slack: existing community workspace, public channel, freeform text messages
+- Slack bot needs: channels:history + channels:read scopes
+- Will need bot token and channel ID when executing Phase 04
 - Will need Claude API key (or similar) for AI-assisted event parsing in Phases 03/04
