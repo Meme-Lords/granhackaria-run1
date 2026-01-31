@@ -45,5 +45,9 @@
       "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" add .planning/phases/)",
       "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" commit -m \"$\\(cat <<''EOF''\nfeat\\(gsd\\): add execution plans for all 6 phases\n\nPhase 02: Wire frontend \\(query functions + replace hardcoded data\\)\nPhase 03: Instagram ingestion \\(RapidAPI fetcher + AI parser + pipeline\\)\nPhase 04: Slack ingestion \\(Slack API + reuse AI parser + pipeline\\)\nPhase 05: Scheduling \\(cron API route + Vercel cron config\\)\nPhase 06: Polish & deploy \\(view-all pages, responsive, loading states, deploy\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "RapidAPI Hub - instagram"
+  ],
+  "enableAllProjectMcpServers": true
 }

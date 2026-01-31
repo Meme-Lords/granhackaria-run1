@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Clock, Calendar, MapPin } from "lucide-react";
 import { CategoryLabel, CategoryVariant } from "./CategoryLabel";
@@ -6,7 +8,6 @@ export interface EventCardProps {
   imageUrl: string;
   imageAlt?: string;
   category: CategoryVariant;
-  categoryLabel: string;
   time: string;
   title: string;
   location: string;
@@ -17,7 +18,6 @@ export function EventCard({
   imageUrl,
   imageAlt = "",
   category,
-  categoryLabel,
   time,
   title,
   location,
@@ -37,7 +37,7 @@ export function EventCard({
       </div>
       <div className="flex flex-col gap-2 sm:gap-3 p-3 sm:p-4">
         <div className="flex items-center justify-between w-full">
-          <CategoryLabel category={category} label={categoryLabel} />
+          <CategoryLabel category={category} />
           <div className="flex items-center gap-1.5">
             <TimeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
             <span className="font-secondary text-xs sm:text-[13px] font-medium text-[var(--muted-foreground)]">

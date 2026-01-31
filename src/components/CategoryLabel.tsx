@@ -1,3 +1,7 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n";
+
 export type CategoryVariant =
   | "music"
   | "arts"
@@ -10,7 +14,6 @@ export type CategoryVariant =
 
 interface CategoryLabelProps {
   category: CategoryVariant;
-  label: string;
 }
 
 const categoryStyles: Record<
@@ -51,8 +54,10 @@ const categoryStyles: Record<
   },
 };
 
-export function CategoryLabel({ category, label }: CategoryLabelProps) {
+export function CategoryLabel({ category }: CategoryLabelProps) {
+  const { t } = useI18n();
   const styles = categoryStyles[category];
+  const label = t.categories[category];
 
   return (
     <span

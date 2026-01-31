@@ -6,3 +6,4 @@ export { EventCard } from "./EventCard";
 export type { EventCardProps } from "./EventCard";
 export { EventSection } from "./EventSection";
 export { Footer } from "./Footer";
+export { LanguageToggle } from "./LanguageToggle";

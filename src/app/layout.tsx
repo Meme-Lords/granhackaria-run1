@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import { I18nProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "EventosGC - Discover Local Events",
@@ -22,7 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full bg-[var(--background)] text-[var(--foreground)]">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );
