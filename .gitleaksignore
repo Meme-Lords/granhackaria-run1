@@ -1,0 +1,5 @@
+# GSD skill documentation examples (not real secrets)
+.agents/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:175
+.agents/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:184
+.claude/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:175
+.claude/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:184
