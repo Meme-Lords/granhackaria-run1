@@ -56,7 +56,7 @@ export function CategoryLabel({ category, label }: CategoryLabelProps) {
 
   return (
     <span
-      className={`inline-flex items-center justify-center gap-1 px-2 py-2 rounded-full font-primary text-sm ${styles.bg} ${styles.text}`}
+      className={`inline-flex items-center justify-center gap-1 px-2 py-1.5 sm:py-2 rounded-full font-primary text-xs sm:text-sm ${styles.bg} ${styles.text}`}
     >
       {label}
     </span>

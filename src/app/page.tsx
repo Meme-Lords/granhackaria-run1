@@ -105,7 +105,7 @@ export default function EventListingsPage() {
     <div className="flex flex-col min-h-full w-full bg-[var(--background)]">
       <Header />
       <Hero />
-      <main className="flex flex-col gap-12 w-full px-12 py-8">
+      <main className="flex flex-col gap-8 sm:gap-10 md:gap-12 w-full px-4 sm:px-6 md:px-12 py-6 sm:py-8">
         <EventSection icon={Sun} title="Today" events={todayEvents} />
         <EventSection icon={Sunrise} title="Tomorrow" events={tomorrowEvents} />
         <EventSection icon={CalendarRange} title="This Week" events={weekEvents} />

@@ -27,7 +27,7 @@ export function EventCard({
 
   return (
     <article className="flex flex-col w-full overflow-hidden rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)]">
-      <div className="relative w-full h-[160px]">
+      <div className="relative w-full h-[140px] sm:h-[160px]">
         <Image
           src={imageUrl}
           alt={imageAlt || title}
@@ -35,22 +35,22 @@ export function EventCard({
           className="object-cover"
         />
       </div>
-      <div className="flex flex-col gap-3 p-4">
+      <div className="flex flex-col gap-2 sm:gap-3 p-3 sm:p-4">
         <div className="flex items-center justify-between w-full">
           <CategoryLabel category={category} label={categoryLabel} />
           <div className="flex items-center gap-1.5">
-            <TimeIcon className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-            <span className="font-secondary text-[13px] font-medium text-[var(--muted-foreground)]">
+            <TimeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
+            <span className="font-secondary text-xs sm:text-[13px] font-medium text-[var(--muted-foreground)]">
               {time}
             </span>
           </div>
         </div>
-        <h3 className="font-primary text-base font-semibold text-[var(--foreground)]">
+        <h3 className="font-primary text-sm sm:text-base font-semibold text-[var(--foreground)]">
           {title}
         </h3>
         <div className="flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-          <span className="font-secondary text-[13px] text-[var(--muted-foreground)]">
+          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
+          <span className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)]">
             {location}
           </span>
         </div>
