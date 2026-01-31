@@ -29,11 +29,17 @@ export function EventSection({ icon: Icon, titleKey, events }: EventSectionProps
           {t.sections.viewAll}
         </a>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
-        {events.map((event, index) => (
-          <EventCard key={index} {...event} />
-        ))}
-      </div>
+      {events.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
+          {events.map((event, index) => (
+            <EventCard key={index} {...event} />
+          ))}
+        </div>
+      ) : (
+        <p className="font-secondary text-sm text-[var(--muted-foreground)] py-4">
+          {t.sections.noEvents}
+        </p>
+      )}
     </section>
   );
 }
