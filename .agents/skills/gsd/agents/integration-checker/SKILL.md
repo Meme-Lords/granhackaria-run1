@@ -171,8 +171,8 @@ curl http://localhost:3000/api/external-service/endpoint
 **Test with valid credentials:**
 
 ```bash
-# Test with valid API key
-curl -H "X-API-Key: valid-key" http://localhost:3000/api/external-service/endpoint
+# Test with valid API key (replace with your key)
+curl -H "X-API-Key: <your-api-key>" http://localhost:3000/api/external-service/endpoint
 
 # Should return 200 with data
 ```
@@ -180,8 +180,8 @@ curl -H "X-API-Key: valid-key" http://localhost:3000/api/external-service/endpoi
 **Verify token-based auth:**
 
 ```bash
-# Test OAuth flow
-curl -H "Authorization: Bearer oauth-token" http://localhost:3000/api/external-service/endpoint
+# Test OAuth flow (replace with your token)
+curl -H "Authorization: Bearer <your-bearer-token>" http://localhost:3000/api/external-service/endpoint
 ```
 
 ### Step 6: Check Data Persistence
