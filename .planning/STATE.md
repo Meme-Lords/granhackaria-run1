@@ -2,11 +2,19 @@
 
 ## Current Status
 
-**Project Phase:** Phase 01 — Supabase Schema & Client Setup
+**Project Phase:** Phase 02 — Wire Frontend to Supabase (completed)
 **Last Updated:** 2026-01-31
-**Next Step:** Run migration against Supabase project, then execute Phase 02 (Wire Frontend)
+**Next Step:** Execute Phase 03 (Instagram Ingestion)
 
 ## Completed Phases
+
+### Phase 02: Wire Frontend to Supabase
+- Replaced hardcoded event data with live Supabase queries
+- Created Supabase server client (`src/lib/supabase/server.ts`)
+- Created event query functions (`src/lib/queries/events.ts`)
+- Converted page.tsx to async server component
+- Added empty state handling in EventSection
+- See `.planning/phases/02-wire-frontend/02-SUMMARY.md`
 
 ### Phase 01, Plan 02: Events Schema & Seed Data
 - Events table migration created (`supabase/migrations/001_create_events.sql`)
@@ -18,10 +26,12 @@
 
 - Next.js 16 app with Tailwind CSS
 - UI components: Header, Hero, EventCard, EventSection, Footer, CategoryLabel
-- Hardcoded event data in page.tsx (9 sample events across 3 sections)
-- Supabase packages installed (@supabase/supabase-js, @supabase/ssr)
-- Events table migration ready to apply
-- Seed script ready to run (`npx tsx src/lib/supabase/seed.ts`)
+- Homepage fetches events from Supabase (server component with parallel queries)
+- Empty state handling for sections with no events (bilingual)
+- Supabase server client using @supabase/ssr
+- Event query functions: getTodayEvents, getTomorrowEvents, getThisWeekEvents
+- Events table migration applied
+- Seed data in Supabase (9 sample events)
 - RapidAPI MCP configured for Instagram (instagram120)
 - GSD and Ralphy tooling installed
 
@@ -42,7 +52,7 @@
 
 ## Notes
 
-- Existing UI is static/hardcoded — needs to be wired to Supabase
+- Homepage is now data-driven — events flow from Supabase to the UI
 - Instagram integration uses RapidAPI instagram120 endpoint (key already configured in .mcp.json)
 - Slack: existing community workspace, public channel, freeform text messages
 - Slack bot needs: channels:history + channels:read scopes
