@@ -4,11 +4,15 @@
 
 **Project Phase:** Phase 01 — Supabase Schema & Client Setup
 **Last Updated:** 2026-01-31
-**Next Step:** `/gsd:plan-phase 1` to create detailed execution plans
+**Next Step:** Run migration against Supabase project, then execute Phase 02 (Wire Frontend)
 
 ## Completed Phases
 
-_None yet._
+### Phase 01, Plan 02: Events Schema & Seed Data
+- Events table migration created (`supabase/migrations/001_create_events.sql`)
+- Seed script created (`src/lib/supabase/seed.ts`) with 9 sample events
+- RLS enabled with anonymous read access
+- See `.planning/phases/01-supabase-setup/02-SUMMARY.md`
 
 ## What Exists
 
@@ -16,6 +20,8 @@ _None yet._
 - UI components: Header, Hero, EventCard, EventSection, Footer, CategoryLabel
 - Hardcoded event data in page.tsx (9 sample events across 3 sections)
 - Supabase packages installed (@supabase/supabase-js, @supabase/ssr)
+- Events table migration ready to apply
+- Seed script ready to run (`npx tsx src/lib/supabase/seed.ts`)
 - RapidAPI MCP configured for Instagram (instagram120)
 - GSD and Ralphy tooling installed
 
