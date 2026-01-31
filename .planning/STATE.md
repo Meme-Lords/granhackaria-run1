@@ -2,11 +2,19 @@
 
 ## Current Status
 
-**Project Phase:** Phase 03 — Instagram Ingestion (completed)
+**Project Phase:** Phase 04 — Slack Ingestion (completed)
 **Last Updated:** 2026-01-31
-**Next Step:** Execute Phase 04 (Slack Ingestion)
+**Next Step:** Execute Phase 05 (if planned)
 
 ## Completed Phases
+
+### Phase 04: Slack Ingestion
+- Created Slack fetcher via @slack/web-api (`src/lib/ingestion/slack.ts`)
+- Created Slack ingestion pipeline (`src/lib/ingestion/slack-pipeline.ts`)
+- Reuses shared AI parser from Phase 03
+- Supports incremental fetching with `since` parameter
+- Added 13 tests for fetcher and pipeline (30 total)
+- See `.planning/phases/04-slack-ingestion/01-SUMMARY.md`
 
 ### Phase 03: Instagram Ingestion
 - Created ingestion types (`RawInstagramPost`, `RawEvent`)
@@ -43,7 +51,9 @@
 - Instagram ingestion pipeline (fetch -> AI parse -> Supabase upsert)
 - AI-assisted event parser using Claude API (Anthropic SDK)
 - Instagram fetcher via RapidAPI instagram120 endpoint
-- Vitest test suite (17 tests)
+- Slack ingestion pipeline (fetch -> AI parse -> Supabase upsert)
+- Slack fetcher via @slack/web-api with incremental fetch support
+- Vitest test suite (30 tests)
 - GSD and Ralphy tooling installed
 
 ## Decisions
@@ -65,7 +75,7 @@
 
 - Homepage is now data-driven — events flow from Supabase to the UI
 - Instagram ingestion pipeline is runnable as: `npx tsx src/lib/ingestion/instagram-pipeline.ts`
-- Required env vars for ingestion: RAPIDAPI_KEY, ANTHROPIC_API_KEY, INSTAGRAM_ACCOUNTS
-- Slack: existing community workspace, public channel, freeform text messages
+- Required env vars for Instagram ingestion: RAPIDAPI_KEY, ANTHROPIC_API_KEY, INSTAGRAM_ACCOUNTS
+- Slack ingestion pipeline is runnable as: `npx tsx src/lib/ingestion/slack-pipeline.ts`
+- Required env vars for Slack ingestion: SLACK_BOT_TOKEN, SLACK_CHANNEL_ID, ANTHROPIC_API_KEY
 - Slack bot needs: channels:history + channels:read scopes
-- Will need bot token and channel ID when executing Phase 04
