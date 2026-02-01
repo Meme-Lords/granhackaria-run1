@@ -10,7 +10,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatsigProvider, useClientAsyncInit } from "@statsig/react-bindings";
 
 interface StatsigRootProviderProps {
@@ -49,11 +49,25 @@ function StatsigEnabled({ children }: StatsigRootProviderProps) {
 }
 
 export function StatsigRootProvider({ children }: StatsigRootProviderProps) {
+  // Hooks must run unconditionally (before any early returns).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Hard disable switch via env var. When set to "true", we avoid
   // initializing the SDK entirely to keep bundle/runtime overhead minimal.
   const isDisabled = process.env.NEXT_PUBLIC_DISABLE_STATSIG === "true";
+  const hasKey =
+    STATSIG_CLIENT_KEY != null && STATSIG_CLIENT_KEY !== "";
 
-  if (isDisabled || STATSIG_CLIENT_KEY == null || STATSIG_CLIENT_KEY === "") {
+  if (isDisabled || !hasKey) {
+    return <>{children}</>;
+  }
+
+  // Defer Statsig init until after mount so useClientAsyncInit's async state
+  // updates run in effect phase, not during render (avoids React warning).
+  if (!mounted) {
     return <>{children}</>;
   }
 
