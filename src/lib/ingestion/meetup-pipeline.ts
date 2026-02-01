@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { fetchMeetupEvents, transformMeetupEvent } from "./meetup";
+import {
+  fetchMeetupEventsFromApify,
+  transformApifyMeetupItem,
+} from "./meetup-apify";
 import type { RawEvent } from "./types";
 
 export interface PipelineResult {
@@ -61,51 +65,74 @@ async function upsertEvent(
 
 /**
  * Ingest events from Meetup.com for Gran Canaria.
- * Requires MEETUP_CLIENT_ID, MEETUP_CLIENT_SECRET, MEETUP_REFRESH_TOKEN.
+ * Uses OAuth+GraphQL when MEETUP_CLIENT_ID and MEETUP_REFRESH_TOKEN are set;
+ * otherwise uses Apify meetup-scraper when APIFY_API_TOKEN is set.
  */
 export async function ingestFromMeetup(): Promise<PipelineResult> {
   const clientId = process.env.MEETUP_CLIENT_ID;
   const refreshToken = process.env.MEETUP_REFRESH_TOKEN;
+  const apifyToken = process.env.APIFY_API_TOKEN;
 
-  if (!clientId || !refreshToken) {
+  const useOAuth = !!(clientId && refreshToken);
+  const useApify = !!apifyToken;
+
+  if (!useOAuth && !useApify) {
     throw new Error(
-      "Meetup credentials not configured: set MEETUP_CLIENT_ID, MEETUP_CLIENT_SECRET, MEETUP_REFRESH_TOKEN"
+      "Meetup: set MEETUP_CLIENT_ID and MEETUP_REFRESH_TOKEN (OAuth) or APIFY_API_TOKEN (Apify scraper)"
     );
   }
 
   const supabase = createSupabaseAdmin();
   const result: PipelineResult = { inserted: 0, skipped: 0, errors: 0 };
 
-  console.log("[meetup-pipeline] Fetching Meetup events for Gran Canaria...");
-  const rawEvents = await fetchMeetupEvents();
-  console.log(`[meetup-pipeline] Got ${rawEvents.length} events`);
+  if (useOAuth) {
+    console.log("[meetup-pipeline] Fetching Meetup events via GraphQL (Gran Canaria)...");
+    const rawEvents = await fetchMeetupEvents();
+    console.log(`[meetup-pipeline] Got ${rawEvents.length} events`);
 
-  for (const raw of rawEvents) {
-    const event = transformMeetupEvent(raw);
-
-    if (!event.date_start?.trim()) {
-      console.log(`[meetup-pipeline] Skipping event "${event.title}" (no valid date)`);
-      result.skipped++;
-      continue;
+    for (const raw of rawEvents) {
+      const event = transformMeetupEvent(raw);
+      const outcome = await processEvent(supabase, event, result);
+      if (outcome === "continue") continue;
     }
+  } else {
+    console.log("[meetup-pipeline] Fetching Meetup events via Apify scraper (Gran Canaria)...");
+    const items = await fetchMeetupEventsFromApify();
+    console.log(`[meetup-pipeline] Got ${items.length} events`);
 
-    if (!event.source_url) {
-      console.log(`[meetup-pipeline] Skipping event "${event.title}" (no event URL)`);
-      result.skipped++;
-      continue;
-    }
-
-    console.log(`[meetup-pipeline] Upserting event: "${event.title}"`);
-    const status = await upsertEvent(supabase, event);
-
-    if (status === "error") {
-      result.errors++;
-    } else {
-      result.inserted++;
+    for (const item of items) {
+      const event = transformApifyMeetupItem(item);
+      const outcome = await processEvent(supabase, event, result);
+      if (outcome === "continue") continue;
     }
   }
 
   return result;
+}
+
+
+async function processEvent(
+  supabase: SupabaseClient<any>,
+  event: RawEvent,
+  result: PipelineResult
+): Promise<"continue" | void> {
+  if (!event.date_start?.trim()) {
+    console.log(`[meetup-pipeline] Skipping event "${event.title}" (no valid date)`);
+    result.skipped++;
+    return "continue";
+  }
+  if (!event.source_url) {
+    console.log(`[meetup-pipeline] Skipping event "${event.title}" (no event URL)`);
+    result.skipped++;
+    return "continue";
+  }
+  console.log(`[meetup-pipeline] Upserting event: "${event.title}"`);
+  const status = await upsertEvent(supabase, event);
+  if (status === "error") {
+    result.errors++;
+  } else {
+    result.inserted++;
+  }
 }
 
 // Run as standalone script: npx tsx src/lib/ingestion/meetup-pipeline.ts
@@ -115,21 +142,26 @@ const isMainModule =
   (require as any).main === module;
 
 if (isMainModule) {
+  require("dotenv").config({ path: ".env" });
   require("dotenv").config({ path: ".env.local" });
 
-  const hasCreds =
+  const hasOAuth =
     !!process.env.MEETUP_CLIENT_ID &&
     !!process.env.MEETUP_CLIENT_SECRET &&
     !!process.env.MEETUP_REFRESH_TOKEN;
+  const hasApify = !!process.env.APIFY_API_TOKEN;
 
-  if (!hasCreds) {
+  if (!hasOAuth && !hasApify) {
     console.error(
-      "[meetup-pipeline] Set MEETUP_CLIENT_ID, MEETUP_CLIENT_SECRET, MEETUP_REFRESH_TOKEN in .env.local"
+      "[meetup-pipeline] Set MEETUP_CLIENT_ID, MEETUP_CLIENT_SECRET, MEETUP_REFRESH_TOKEN (OAuth) or APIFY_API_TOKEN (Apify scraper) in .env or .env.local"
     );
     process.exit(1);
   }
 
-  console.log("[meetup-pipeline] Starting Meetup ingestion for Gran Canaria");
+  console.log(
+    "[meetup-pipeline] Starting Meetup ingestion for Gran Canaria",
+    hasOAuth ? "(OAuth)" : "(Apify scraper)"
+  );
 
   ingestFromMeetup()
     .then((res) => {

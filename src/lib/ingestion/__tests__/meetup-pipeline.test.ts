@@ -9,6 +9,11 @@ vi.mock("../meetup", () => ({
   transformMeetupEvent: vi.fn(),
 }));
 
+vi.mock("../meetup-apify", () => ({
+  fetchMeetupEventsFromApify: vi.fn(),
+  transformApifyMeetupItem: vi.fn(),
+}));
+
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
     from: () => ({
@@ -19,9 +24,15 @@ vi.mock("@supabase/supabase-js", () => ({
 
 import { ingestFromMeetup } from "../meetup-pipeline";
 import { fetchMeetupEvents, transformMeetupEvent } from "../meetup";
+import {
+  fetchMeetupEventsFromApify,
+  transformApifyMeetupItem,
+} from "../meetup-apify";
 
 const mockFetchMeetupEvents = vi.mocked(fetchMeetupEvents);
 const mockTransformMeetupEvent = vi.mocked(transformMeetupEvent);
+const mockFetchMeetupEventsFromApify = vi.mocked(fetchMeetupEventsFromApify);
+const mockTransformApifyMeetupItem = vi.mocked(transformApifyMeetupItem);
 
 const sampleRawNode = {
   id: "evt1",
@@ -113,12 +124,50 @@ describe("ingestFromMeetup", () => {
     expect(result.inserted).toBe(0);
   });
 
-  it("throws when Meetup credentials not set", async () => {
+  it("throws when neither OAuth nor Apify configured", async () => {
     vi.stubEnv("MEETUP_CLIENT_ID", "");
     vi.stubEnv("MEETUP_REFRESH_TOKEN", "");
+    vi.stubEnv("APIFY_API_TOKEN", "");
 
-    await expect(ingestFromMeetup()).rejects.toThrow("Meetup credentials not configured");
+    await expect(ingestFromMeetup()).rejects.toThrow(
+      "Meetup: set MEETUP_CLIENT_ID and MEETUP_REFRESH_TOKEN (OAuth) or APIFY_API_TOKEN"
+    );
     expect(mockFetchMeetupEvents).not.toHaveBeenCalled();
+    expect(mockFetchMeetupEventsFromApify).not.toHaveBeenCalled();
+  });
+
+  it("uses Apify path when OAuth not set but APIFY_API_TOKEN set", async () => {
+    vi.stubEnv("MEETUP_CLIENT_ID", "");
+    vi.stubEnv("MEETUP_REFRESH_TOKEN", "");
+    vi.stubEnv("APIFY_API_TOKEN", "apify-token");
+
+    const sampleApifyItem = {
+      id: "e1",
+      title: "Apify Event",
+      eventUrl: "https://www.meetup.com/e/apify/",
+      startsAt: "2026-02-20T19:00:00Z",
+      address: "Gran Canaria",
+      venueName: "Test Venue",
+      city: "Las Palmas",
+      platform: "meetup",
+    };
+    mockFetchMeetupEventsFromApify.mockResolvedValueOnce([sampleApifyItem]);
+    mockTransformApifyMeetupItem.mockReturnValueOnce({
+      ...sampleEvent,
+      title: "Apify Event",
+      source_url: "https://www.meetup.com/e/apify/",
+    });
+    mockUpsert.mockResolvedValue({ error: null });
+
+    const result = await ingestFromMeetup();
+
+    expect(mockFetchMeetupEvents).not.toHaveBeenCalled();
+    expect(mockFetchMeetupEventsFromApify).toHaveBeenCalledTimes(1);
+    expect(mockTransformApifyMeetupItem).toHaveBeenCalledWith(sampleApifyItem);
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(result.inserted).toBe(1);
+    expect(result.skipped).toBe(0);
+    expect(result.errors).toBe(0);
   });
 
   it("handles empty event list", async () => {

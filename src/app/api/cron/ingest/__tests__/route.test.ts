@@ -140,10 +140,11 @@ describe("GET /api/cron/ingest", () => {
     expect(body.slack).toEqual({ inserted: 0, skipped: 0, errors: 0 });
   });
 
-  it("skips Meetup when credentials not configured", async () => {
+  it("skips Meetup when neither OAuth nor Apify configured", async () => {
     mockGetInstagramAccountsFromStatsig.mockResolvedValue(["a1"]);
     vi.stubEnv("MEETUP_CLIENT_ID", "");
     vi.stubEnv("MEETUP_REFRESH_TOKEN", "");
+    vi.stubEnv("APIFY_API_TOKEN", "");
 
     mockIngestFromInstagram.mockResolvedValue({ inserted: 0, skipped: 0, errors: 0 });
     mockIngestFromSlack.mockResolvedValue({ inserted: 0, skipped: 0, errors: 0 });
@@ -153,7 +154,8 @@ describe("GET /api/cron/ingest", () => {
 
     expect(response.status).toBe(200);
     expect(body.meetup).toEqual({
-      error: "Meetup credentials not configured (MEETUP_CLIENT_ID, MEETUP_REFRESH_TOKEN)",
+      error:
+        "Meetup not configured: set MEETUP_CLIENT_ID and MEETUP_REFRESH_TOKEN (OAuth) or APIFY_API_TOKEN (Apify scraper)",
     });
     expect(mockIngestFromMeetup).not.toHaveBeenCalled();
   });

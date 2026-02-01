@@ -55,10 +55,11 @@ export async function GET(request: Request): Promise<NextResponse> {
     slack = { error: message };
   }
 
-  // Run Meetup ingestion (skip if credentials not configured)
+  // Run Meetup ingestion (OAuth or Apify scraper)
   const hasMeetupCreds =
     !!process.env.MEETUP_CLIENT_ID && !!process.env.MEETUP_REFRESH_TOKEN;
-  if (hasMeetupCreds) {
+  const hasApifyScraper = !!process.env.APIFY_API_TOKEN;
+  if (hasMeetupCreds || hasApifyScraper) {
     try {
       meetup = await ingestFromMeetup();
       console.log("[cron/ingest] Meetup result:", meetup);
@@ -69,9 +70,10 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
   } else {
     meetup = {
-      error: "Meetup credentials not configured (MEETUP_CLIENT_ID, MEETUP_REFRESH_TOKEN)",
+      error:
+        "Meetup not configured: set MEETUP_CLIENT_ID and MEETUP_REFRESH_TOKEN (OAuth) or APIFY_API_TOKEN (Apify scraper)",
     };
-    console.log("[cron/ingest] Skipping Meetup: credentials not set");
+    console.log("[cron/ingest] Skipping Meetup: no OAuth or Apify credentials");
   }
 
   const endTime = new Date().toISOString();

@@ -60,7 +60,7 @@ export function EventImageModal({
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 z-50 w-full max-w-none h-full max-h-none border-0 bg-transparent p-0 overflow-auto backdrop:bg-black/70"
+      className="fixed inset-0 z-50 w-full max-w-none h-full max-h-none border-0 bg-transparent p-0 overflow-auto backdrop:bg-black/70 backdrop:backdrop-blur-[2px]"
       aria-modal="true"
       aria-label={imageAlt}
       onCancel={onClose}

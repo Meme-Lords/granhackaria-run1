@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.fna.fbcdn.net",
       },
+      {
+        protocol: "https",
+        hostname: "secure-content.meetupstatic.com",
+      },
     ],
   },
 };

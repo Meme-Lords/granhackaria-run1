@@ -13,7 +13,8 @@
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
     "db:seed": "npx tsx src/lib/supabase/seed.ts",
-    "ingest:instagram": "npx tsx src/lib/ingestion/instagram-pipeline.ts"
+    "ingest:instagram": "npx tsx src/lib/ingestion/instagram-pipeline.ts",
+    "ingest:meetup": "npx tsx src/lib/ingestion/meetup-pipeline.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",

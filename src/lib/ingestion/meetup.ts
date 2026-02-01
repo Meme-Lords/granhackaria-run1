@@ -52,7 +52,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function keywordCategory(text: string): RawEvent["category"] {
+/** Exported for reuse in meetup-apify (Apify scraper path). */
+export function keywordCategory(text: string): RawEvent["category"] {
   const lower = text.toLowerCase();
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     if (keywords.some((kw) => lower.includes(kw))) {
