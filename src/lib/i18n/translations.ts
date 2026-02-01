@@ -21,7 +21,6 @@ export const translations = {
       today: "Today",
       tomorrow: "Tomorrow",
       thisWeek: "This Week",
-      viewAll: "View all →",
       noEvents: "No events scheduled",
     },
 
@@ -314,7 +313,6 @@ export const translations = {
       today: "Hoy",
       tomorrow: "Mañana",
       thisWeek: "Esta Semana",
-      viewAll: "Ver todos →",
       noEvents: "No hay eventos programados",
     },
 
