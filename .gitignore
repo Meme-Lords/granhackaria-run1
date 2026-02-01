@@ -18,6 +18,9 @@ out/
 # Build
 /build
 
+# MCP (may contain API keys)
+.mcp.json
+
 # Env
 .env
 .env.local
