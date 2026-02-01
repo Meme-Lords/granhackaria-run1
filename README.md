@@ -33,3 +33,13 @@
 - Or: `ralphy --yaml .ralphy/tasks.yaml --max-iterations 0 --max-retries 3 --verbose`
 
 Phase plans live in `.planning/phases/`. GSD skills are in `.agents/skills/gsd/`.
+
+## Meetup ingestion (Phase 07)
+
+To enable Meetup.com as an event source, register an OAuth app at [Meetup API](https://www.meetup.com/api/oauth/) and set:
+
+- `MEETUP_CLIENT_ID` — OAuth client ID
+- `MEETUP_CLIENT_SECRET` — OAuth client secret
+- `MEETUP_REFRESH_TOKEN` — Long-lived refresh token (obtained once via OAuth2 authorization code flow)
+
+Run Meetup ingestion standalone: `npx tsx src/lib/ingestion/meetup-pipeline.ts`

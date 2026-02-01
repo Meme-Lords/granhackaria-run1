@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getInstagramAccountsFromStatsig } from "@/lib/statsig/server";
 import { ingestFromInstagram } from "@/lib/ingestion/instagram-pipeline";
 import { ingestFromSlack } from "@/lib/ingestion/slack-pipeline";
+import { ingestFromMeetup } from "@/lib/ingestion/meetup-pipeline";
 
 // Vercel cron: Hobby plan runs once daily, Pro plan supports custom schedules.
 // maxDuration in seconds for Vercel serverless function timeout.
@@ -22,6 +23,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     error: "not run",
   };
   let slack: { inserted: number; skipped: number; errors: number } | { error: string } = {
+    error: "not run",
+  };
+  let meetup: { inserted: number; skipped: number; errors: number } | { error: string } = {
     error: "not run",
   };
 
@@ -51,12 +55,32 @@ export async function GET(request: Request): Promise<NextResponse> {
     slack = { error: message };
   }
 
+  // Run Meetup ingestion (skip if credentials not configured)
+  const hasMeetupCreds =
+    !!process.env.MEETUP_CLIENT_ID && !!process.env.MEETUP_REFRESH_TOKEN;
+  if (hasMeetupCreds) {
+    try {
+      meetup = await ingestFromMeetup();
+      console.log("[cron/ingest] Meetup result:", meetup);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[cron/ingest] Meetup ingestion failed:", message);
+      meetup = { error: message };
+    }
+  } else {
+    meetup = {
+      error: "Meetup credentials not configured (MEETUP_CLIENT_ID, MEETUP_REFRESH_TOKEN)",
+    };
+    console.log("[cron/ingest] Skipping Meetup: credentials not set");
+  }
+
   const endTime = new Date().toISOString();
   console.log(`[cron/ingest] Finished ingestion at ${endTime}`);
 
   return NextResponse.json({
     instagram,
     slack,
+    meetup,
     timestamp: { start: startTime, end: endTime },
   });
 }
