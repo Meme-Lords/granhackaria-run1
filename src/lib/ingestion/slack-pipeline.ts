@@ -34,7 +34,12 @@ async function upsertEvent(
   const { error } = await supabase.from("events").upsert(
     {
       title: event.title,
+      title_en: event.title_en,
+      title_es: event.title_es,
       description: event.description,
+      description_en: event.description_en,
+      description_es: event.description_es,
+      source_language: event.source_language,
       date_start: event.date_start,
       time: event.time,
       location: event.location,

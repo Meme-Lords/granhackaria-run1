@@ -37,7 +37,12 @@ async function upsertEvent(
 ): Promise<"inserted" | "skipped" | "error"> {
   const { error } = await supabase.from("events").insert({
     title: event.title,
+    title_en: event.title_en,
+    title_es: event.title_es,
     description: event.description,
+    description_en: event.description_en,
+    description_es: event.description_es,
+    source_language: event.source_language,
     date_start: event.date_start,
     time: event.time,
     location: event.location,
@@ -74,9 +79,13 @@ function mergeVisionIntoEvent(base: RawEvent, fromVision: RawEvent): RawEvent {
   return {
     ...base,
     title: base.title?.trim() ? base.title : fromVision.title,
+    title_en: base.title_en?.trim() ? base.title_en : fromVision.title_en,
+    title_es: base.title_es?.trim() ? base.title_es : fromVision.title_es,
     date_start: base.date_start?.trim() ? base.date_start : fromVision.date_start,
     time: base.time != null ? base.time : fromVision.time,
     description: base.description != null ? base.description : fromVision.description,
+    description_en: base.description_en != null ? base.description_en : fromVision.description_en,
+    description_es: base.description_es != null ? base.description_es : fromVision.description_es,
     ticket_price: base.ticket_price != null ? base.ticket_price : fromVision.ticket_price,
   };
 }
