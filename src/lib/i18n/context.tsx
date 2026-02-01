@@ -7,6 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { translations, Locale, Translations } from "./translations";
 
 interface I18nContextType {
@@ -26,6 +27,7 @@ const I18nContext = createContext<I18nContextType>(defaultValue);
 const STORAGE_KEY = "eventosgc-locale";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [locale, setLocaleState] = useState<Locale>("en");
   const [mounted, setMounted] = useState(false);
 
@@ -44,6 +46,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLocaleState(newLocale);
     localStorage.setItem(STORAGE_KEY, newLocale);
     document.cookie = `locale=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    router.refresh();
   };
 
   const t = translations[locale];

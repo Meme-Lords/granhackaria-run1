@@ -7,7 +7,7 @@
  * Usage:
  *   npx tsx scripts/migrate-events-bilingual.ts [--dry-run]
  *
- * Requires: ANTHROPIC_API_KEY (or OPENAI_API_KEY), NEXT_PUBLIC_SUPABASE_URL,
+ * Requires: OPENAI_API_KEY or ANTHROPIC_API_KEY; NEXT_PUBLIC_SUPABASE_URL;
  *           SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY)
  */
 
@@ -15,6 +15,7 @@ import { config } from "dotenv";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 // Load env
 const projectRoot = path.resolve(__dirname, "..");
@@ -31,6 +32,88 @@ interface EventToMigrate {
   title_es: string | null;
 }
 
+type TranslationResult = Array<{
+  id: string;
+  source_language: string;
+  title_en: string;
+  title_es: string;
+  description_en: string | null;
+  description_es: string | null;
+}>;
+
+const SYSTEM_PROMPT = `You are a translator for event titles and descriptions in Gran Canaria, Spain. For each event, detect the source language and provide the translation to the other language. Return ONLY valid JSON, no markdown fences.`;
+
+async function translateWithOpenAI(
+  openai: OpenAI,
+  eventsForPrompt: Array<{ id: string; title: string; description: string | null }>
+): Promise<TranslationResult> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    max_tokens: 2048,
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: `Translate the following events. For each one:
+1. Detect if the title/description is in English or Spanish
+2. Provide title_en, title_es, description_en, description_es
+3. Set source_language to "en" or "es" (or "unknown" if unclear)
+4. Keep the original language as-is, translate to the other
+
+Events: ${JSON.stringify(eventsForPrompt)}
+
+Return a JSON array:
+[{"id": "...", "source_language": "es", "title_en": "...", "title_es": "...", "description_en": "...", "description_es": "..."}]`,
+      },
+    ],
+  });
+
+  const text = response.choices[0]?.message?.content?.trim() ?? "";
+  return parseTranslationResponse(text);
+}
+
+async function translateWithAnthropic(
+  anthropic: Anthropic,
+  eventsForPrompt: Array<{ id: string; title: string; description: string | null }>
+): Promise<TranslationResult> {
+  const message = await anthropic.messages.create({
+    model: "claude-haiku-4-20250514",
+    max_tokens: 2048,
+    system: SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: `Translate the following events. For each one:
+1. Detect if the title/description is in English or Spanish
+2. Provide title_en, title_es, description_en, description_es
+3. Set source_language to "en" or "es" (or "unknown" if unclear)
+4. Keep the original language as-is, translate to the other
+
+Events: ${JSON.stringify(eventsForPrompt)}
+
+Return a JSON array:
+[{"id": "...", "source_language": "es", "title_en": "...", "title_es": "...", "description_en": "...", "description_es": "..."}]`,
+      },
+    ],
+  });
+
+  const block = message.content[0];
+  if (block.type !== "text") {
+    throw new Error("Unexpected response type");
+  }
+  return parseTranslationResponse(block.text.trim());
+}
+
+function parseTranslationResponse(jsonStr: string): TranslationResult {
+  if (jsonStr.startsWith("```")) {
+    jsonStr = jsonStr.slice(3).replace(/^json\s*\n?/i, "");
+  }
+  if (jsonStr.endsWith("```")) {
+    jsonStr = jsonStr.slice(0, -3).trim();
+  }
+  return JSON.parse(jsonStr) as TranslationResult;
+}
+
 async function main() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey =
@@ -42,14 +125,20 @@ async function main() {
     process.exit(1);
   }
 
+  const openaiKey = process.env.OPENAI_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  if (!anthropicKey) {
-    console.error("Missing ANTHROPIC_API_KEY");
+  if (!openaiKey && !anthropicKey) {
+    console.error("Missing OPENAI_API_KEY or ANTHROPIC_API_KEY");
     process.exit(1);
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const anthropic = new Anthropic({ apiKey: anthropicKey });
+  const useOpenAI = Boolean(openaiKey);
+  if (useOpenAI) {
+    console.log("Using OpenAI for translation");
+  } else {
+    console.log("Using Anthropic for translation");
+  }
 
   // Fetch events that need migration (missing bilingual fields)
   const { data: events, error } = await supabase
@@ -95,51 +184,9 @@ async function main() {
     }));
 
     try {
-      const message = await anthropic.messages.create({
-        model: "claude-haiku-4-20250514",
-        max_tokens: 2048,
-        system: `You are a translator for event titles and descriptions in Gran Canaria, Spain. For each event, detect the source language and provide the translation to the other language. Return ONLY valid JSON, no markdown fences.`,
-        messages: [
-          {
-            role: "user",
-            content: `Translate the following events. For each one:
-1. Detect if the title/description is in English or Spanish
-2. Provide title_en, title_es, description_en, description_es
-3. Set source_language to "en" or "es" (or "unknown" if unclear)
-4. Keep the original language as-is, translate to the other
-
-Events: ${JSON.stringify(eventsForPrompt)}
-
-Return a JSON array:
-[{"id": "...", "source_language": "es", "title_en": "...", "title_es": "...", "description_en": "...", "description_es": "..."}]`,
-          },
-        ],
-      });
-
-      const text = message.content[0];
-      if (text.type !== "text") {
-        console.error("Unexpected response type");
-        errors += batch.length;
-        continue;
-      }
-
-      // Strip markdown fences if any
-      let jsonStr = text.text.trim();
-      if (jsonStr.startsWith("```")) {
-        jsonStr = jsonStr.slice(3).replace(/^json\s*\n?/i, "");
-      }
-      if (jsonStr.endsWith("```")) {
-        jsonStr = jsonStr.slice(0, -3).trim();
-      }
-
-      const translations = JSON.parse(jsonStr) as Array<{
-        id: string;
-        source_language: string;
-        title_en: string;
-        title_es: string;
-        description_en: string | null;
-        description_es: string | null;
-      }>;
+      const translations = useOpenAI
+        ? await translateWithOpenAI(new OpenAI({ apiKey: openaiKey! }), eventsForPrompt)
+        : await translateWithAnthropic(new Anthropic({ apiKey: anthropicKey! }), eventsForPrompt);
 
       for (const t of translations) {
         const { error: updateError } = await supabase
