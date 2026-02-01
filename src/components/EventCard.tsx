@@ -76,7 +76,7 @@ export function EventCard({
           {title}
         </h3>
         {description ? (
-          <p className="font-secondary text-sm text-[var(--muted-foreground)] line-clamp-2 mb-2 sm:mb-3">
+          <p className="font-secondary text-sm text-[var(--muted-foreground)] line-clamp-4 mb-4 sm:mb-5">
             {description}
           </p>
         ) : null}
