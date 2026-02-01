@@ -2,22 +2,23 @@
 
 ## Vision
 
-A single place to discover everything happening in Gran Canaria. EventosGC automatically aggregates events from Instagram and Slack, normalizes them, and presents them in a clean, browsable interface organized by time (today, tomorrow, this week).
+A single place to discover everything happening in Gran Canaria. EventosGC automatically aggregates events from Instagram, Slack, and Meetup, normalizes them, and presents them in a clean, browsable interface organized by time (today, tomorrow, this week).
 
 ## Problem Statement
 
-Events in Gran Canaria are scattered across Instagram posts, Slack channels, and various websites. There's no single source of truth for what's happening. Locals and visitors waste time checking multiple platforms and still miss things.
+Events in Gran Canaria are scattered across Instagram posts, Slack channels, Meetup groups, and various websites. There's no single source of truth for what's happening. Locals and visitors waste time checking multiple platforms and still miss things.
 
 ## Solution
 
 An event aggregator that:
-- **Ingests events** from Instagram (via RapidAPI) and a specific Slack workspace
+- **Ingests events** from Instagram (via RapidAPI), a specific Slack workspace, and Meetup.com (via GraphQL API)
 - **Stores and normalizes** events in Supabase (title, date/time, location, category, source, image)
 - **Serves events** through a Next.js frontend already built with category filtering and time-based sections (Today / Tomorrow / This Week)
 
 ### Key Features (v1)
 - Automated Instagram scraping via RapidAPI (hashtags and/or accounts)
 - Slack integration to pull events from community channels
+- Meetup integration for community events via GraphQL API
 - Supabase-backed event storage and API
 - Existing React UI wired to real data
 - Category-based event badges (music, arts, food, sports, festival, theater, workshop, market)
@@ -47,5 +48,5 @@ An event aggregator that:
 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS
 - **Backend/DB:** Supabase (Postgres + REST API)
-- **Data Sources:** RapidAPI (Instagram), Slack API
+- **Data Sources:** RapidAPI (Instagram), Slack API, Meetup GraphQL API
 - **Tooling:** GSD, Ralphy, ESLint, Gitleaks

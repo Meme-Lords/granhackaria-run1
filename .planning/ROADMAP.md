@@ -120,3 +120,31 @@
 - REQ-12 implemented
 
 **Requirements:** REQ-12, REQ-NF-02
+
+---
+
+## Phase 07: Meetup Integration
+
+**Goal:** Add Meetup.com as a third event source for community events.
+
+**Deliverables:**
+- OAuth2 authentication with Meetup API
+- GraphQL client for Meetup eventsSearch query
+- Location-based filtering for Gran Canaria (lat/lon)
+- Event data transformation to RawEvent format
+- Category mapping from Meetup to EventosGC categories
+- Meetup ingestion pipeline (meetup-pipeline.ts)
+- Integration into cron job at /api/cron/ingest
+- Rate limiting handling (500 points/60s)
+- Test coverage matching existing pipelines
+
+**Success Criteria:**
+- Meetup events appear in Supabase with source="meetup"
+- Events are from Gran Canaria area (50km radius)
+- Category mapping is accurate
+- Duplicates are prevented via source_url
+- Pipeline runs successfully in cron job
+- Rate limits are handled gracefully
+- Test coverage >90% for new code
+
+**Requirements:** Extends REQ-01 (additional event source)
