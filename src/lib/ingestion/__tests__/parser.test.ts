@@ -53,6 +53,7 @@ describe("parseEventFromText", () => {
       date_start: "2026-02-01",
       time: "20:00",
       location: "Plaza de Santa Ana",
+      ticket_price: null,
       category: "music",
       image_url: "https://img.example.com/1.jpg",
       source: "instagram",
@@ -93,7 +94,8 @@ describe("parseEventFromText", () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("returns null when ANTHROPIC_API_KEY is not set", async () => {
+  it("returns null when neither OPENAI nor ANTHROPIC API key is set", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "");
     vi.stubEnv("ANTHROPIC_API_KEY", "");
     vi.resetModules();
     vi.doMock("@anthropic-ai/sdk", () => ({
@@ -127,6 +129,7 @@ describe("parseEventFromText", () => {
         date_start: "2026-02-01",
         time: null,
         location: "Las Palmas",
+        ticket_price: null,
         category: "party",
       })
     );

@@ -2,22 +2,24 @@
  * Seed script for events table.
  * Run with: npx tsx src/lib/supabase/seed.ts
  *
- * Requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
- * environment variables (loaded from .env.local).
+ * Requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY)
+ * in .env or .env.local.
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { config } from "dotenv";
 
-// Load .env.local for local development
-const { config } = await import("dotenv");
+// Load .env then .env.local (local overrides). Either file can hold Supabase credentials.
+config({ path: ".env" });
 config({ path: ".env.local" });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey =
+  process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local"
+    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) in .env or .env.local"
   );
   process.exit(1);
 }
@@ -58,6 +60,7 @@ type EventSeed = {
   time: string | null;
   location: string;
   category: string;
+  ticket_price: string | null;
   image_url: string;
   source: string;
   source_url: string;
@@ -74,6 +77,7 @@ const events: EventSeed[] = [
     time: "20:00",
     location: "Auditorio Alfredo Kraus",
     category: "music",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1516275992531-b5e19d647811?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0MDZ8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -88,6 +92,7 @@ const events: EventSeed[] = [
     time: "18:00",
     location: "CAAM Museum",
     category: "arts",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1760662347435-1c0a11fea640?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0MDZ8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -102,6 +107,7 @@ const events: EventSeed[] = [
     time: "12:00",
     location: "Plaza Santa Ana",
     category: "food",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1763621470208-efe14b618119?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0MDZ8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -116,6 +122,7 @@ const events: EventSeed[] = [
     time: "17:00",
     location: "Estadio Gran Canaria",
     category: "sports",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1622460132742-d218ff93958d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0NTB8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -130,6 +137,7 @@ const events: EventSeed[] = [
     time: "21:30",
     location: "Teatro Pérez Galdós",
     category: "music",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1718781379981-bfc5640a6ac4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0NTB8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -144,6 +152,7 @@ const events: EventSeed[] = [
     time: "10:00",
     location: "Casa de Colón",
     category: "workshop",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1664768160237-069ee0f85942?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0NTF8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -159,6 +168,7 @@ const events: EventSeed[] = [
     time: null,
     location: "Parque Santa Catalina",
     category: "festival",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1723551908752-2b16d5b7ab34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0OTd8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -172,6 +182,7 @@ const events: EventSeed[] = [
     time: null,
     location: "Teatro Cuyás",
     category: "theater",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1755781988181-0e1d8c8e93c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0OTd8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -186,6 +197,7 @@ const events: EventSeed[] = [
     time: null,
     location: "Mercado del Puerto",
     category: "market",
+    ticket_price: null,
     image_url:
       "https://images.unsplash.com/photo-1637426992376-b8af65fb90d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk4NzE0OTd8&ixlib=rb-4.1.0&q=80&w=1080",
     source: "manual",
@@ -203,15 +215,19 @@ async function seed() {
 
   const { data, error } = await supabase
     .from("events")
-    .upsert(events, { onConflict: "source_url" })
+    .insert(events)
     .select();
 
   if (error) {
+    if (error.code === "23505") {
+      console.log("Events already seeded (duplicate source_url). Skipping.");
+      process.exit(0);
+    }
     console.error("Seed failed:", error.message);
     process.exit(1);
   }
 
-  console.log(`Successfully upserted ${data.length} events.`);
+  console.log(`Successfully inserted ${data?.length ?? 0} events.`);
 }
 
 seed();

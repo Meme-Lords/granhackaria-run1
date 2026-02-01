@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockUpsert } = vi.hoisted(() => ({
-  mockUpsert: vi.fn(),
+const { mockInsert } = vi.hoisted(() => ({
+  mockInsert: vi.fn(),
 }));
 
 vi.mock("../instagram", () => ({
@@ -10,22 +10,24 @@ vi.mock("../instagram", () => ({
 
 vi.mock("../parser", () => ({
   parseEventFromText: vi.fn(),
+  parseEventFromImage: vi.fn(),
 }));
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
     from: () => ({
-      upsert: mockUpsert,
+      insert: mockInsert,
     }),
   }),
 }));
 
 import { ingestFromInstagram } from "../instagram-pipeline";
 import { fetchAccountPosts } from "../instagram";
-import { parseEventFromText } from "../parser";
+import { parseEventFromText, parseEventFromImage } from "../parser";
 
 const mockFetchAccountPosts = vi.mocked(fetchAccountPosts);
 const mockParseEventFromText = vi.mocked(parseEventFromText);
+const mockParseEventFromImage = vi.mocked(parseEventFromImage);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -63,13 +65,14 @@ describe("ingestFromInstagram", () => {
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",
+      ticket_price: null,
       category: "music",
       image_url: "https://img.example.com/1.jpg",
       source: "instagram",
       source_url: "https://instagram.com/p/A/",
     });
 
-    mockUpsert.mockResolvedValue({ error: null });
+    mockInsert.mockResolvedValue({ error: null });
 
     const result = await ingestFromInstagram(["account1", "account2"]);
 
@@ -111,6 +114,7 @@ describe("ingestFromInstagram", () => {
     ]);
 
     mockParseEventFromText.mockResolvedValueOnce(null);
+    mockParseEventFromImage.mockResolvedValueOnce(null);
 
     const result = await ingestFromInstagram(["account1"]);
 
@@ -136,14 +140,15 @@ describe("ingestFromInstagram", () => {
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",
+      ticket_price: null,
       category: "music",
       image_url: null,
       source: "instagram",
       source_url: "https://instagram.com/p/A/",
     });
 
-    mockUpsert.mockResolvedValueOnce({
-      error: { message: "constraint violation" },
+    mockInsert.mockResolvedValueOnce({
+      error: { message: "constraint violation", code: "OTHER" },
     });
 
     const result = await ingestFromInstagram(["account1"]);

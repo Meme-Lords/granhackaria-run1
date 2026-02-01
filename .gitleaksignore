@@ -3,3 +3,6 @@
 .agents/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:184
 .claude/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:175
 .claude/skills/gsd/agents/integration-checker/SKILL.md:curl-auth-header:184
+
+# Doc example curl with placeholder (not a real secret)
+doc/testing-instagram-ingestion.md:curl-auth-header:59

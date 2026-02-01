@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:push": "npx supabase db push",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:seed": "npx tsx src/lib/supabase/seed.ts",
+    "ingest:instagram": "npx tsx src/lib/ingestion/instagram-pipeline.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
@@ -16,6 +21,7 @@
     "@supabase/supabase-js": "^2.45.0",
     "lucide-react": "^0.468.0",
     "next": "^16.0.0",
+    "openai": "^6.17.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

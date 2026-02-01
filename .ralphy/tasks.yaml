@@ -10,7 +10,7 @@ tasks:
       generate SUMMARY.md when done.
     plan_file: .planning/phases/01-supabase-setup/02-PLAN.md
     phase: 01-supabase-setup
-    completed: false
+    completed: true
   - name: "Phase 02: Wire Frontend"
     title: "Phase 02: Wire Frontend"
     description: |
@@ -21,7 +21,7 @@ tasks:
     phase: 02-wire-frontend
     depends_on:
       - "Phase 01: Supabase Setup"
-    completed: false
+    completed: true
   - name: "Phase 03: Instagram Ingestion"
     title: "Phase 03: Instagram Ingestion"
     description: |
@@ -32,7 +32,7 @@ tasks:
     phase: 03-instagram-ingestion
     depends_on:
       - "Phase 02: Wire Frontend"
-    completed: false
+    completed: true
   - name: "Phase 04: Slack Ingestion"
     title: "Phase 04: Slack Ingestion"
     description: |
@@ -43,7 +43,7 @@ tasks:
     phase: 04-slack-ingestion
     depends_on:
       - "Phase 03: Instagram Ingestion"
-    completed: false
+    completed: true
   - name: "Phase 05: Scheduling"
     title: "Phase 05: Scheduling"
     description: |
@@ -54,7 +54,7 @@ tasks:
     phase: 05-scheduling
     depends_on:
       - "Phase 04: Slack Ingestion"
-    completed: false
+    completed: true
   - name: "Phase 06: Polish & Deploy"
     title: "Phase 06: Polish & Deploy"
     description: |

@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { config } from "dotenv";
 import { fetchAccountPosts } from "./instagram";
-import { parseEventFromText } from "./parser";
+import { parseEventFromText, parseEventFromImage } from "./parser";
 import type { RawEvent } from "./types";
 
 interface PipelineResult {
@@ -13,12 +14,13 @@ interface PipelineResult {
 function createSupabaseAdmin(): SupabaseClient<any> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
+    process.env.SUPABASE_SECRET_KEY ??
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY)"
     );
   }
 
@@ -30,27 +32,50 @@ async function upsertEvent(
   supabase: SupabaseClient<any>,
   event: RawEvent
 ): Promise<"inserted" | "skipped" | "error"> {
-  const { error } = await supabase.from("events").upsert(
-    {
-      title: event.title,
-      description: event.description,
-      date_start: event.date_start,
-      time: event.time,
-      location: event.location,
-      category: event.category,
-      image_url: event.image_url,
-      source: event.source,
-      source_url: event.source_url,
-    },
-    { onConflict: "source_url", ignoreDuplicates: true }
-  );
+  const { error } = await supabase.from("events").insert({
+    title: event.title,
+    description: event.description,
+    date_start: event.date_start,
+    time: event.time,
+    location: event.location,
+    category: event.category,
+    ticket_price: event.ticket_price,
+    image_url: event.image_url,
+    source: event.source,
+    source_url: event.source_url,
+  });
 
   if (error) {
+    if (error.code === "23505") {
+      return "skipped";
+    }
     console.error(`[pipeline] Failed to insert event "${event.title}":`, error.message);
     return "error";
   }
 
   return "inserted";
+}
+
+/** True if any of the required fields is missing (empty or null). */
+function hasMissingRequiredFields(event: RawEvent): boolean {
+  if (!event.title?.trim()) return true;
+  if (!event.date_start?.trim()) return true;
+  if (event.time == null) return true;
+  if (event.description == null) return true;
+  if (event.ticket_price == null) return true;
+  return false;
+}
+
+/** Fill missing required fields in base from vision result. Vision is used only for gaps. */
+function mergeVisionIntoEvent(base: RawEvent, fromVision: RawEvent): RawEvent {
+  return {
+    ...base,
+    title: base.title?.trim() ? base.title : fromVision.title,
+    date_start: base.date_start?.trim() ? base.date_start : fromVision.date_start,
+    time: base.time != null ? base.time : fromVision.time,
+    description: base.description != null ? base.description : fromVision.description,
+    ticket_price: base.ticket_price != null ? base.ticket_price : fromVision.ticket_price,
+  };
 }
 
 export async function ingestFromInstagram(
@@ -72,15 +97,40 @@ export async function ingestFromInstagram(
       }
 
       console.log(`[pipeline] Parsing post ${post.id}...`);
-      const event = await parseEventFromText(
+      let event = await parseEventFromText(
         post.caption,
         "instagram",
         post.permalink,
         post.image_url
       );
 
+      // If caption didn't yield an event, try vision once (when we have an image).
+      if (!event && post.image_url) {
+        console.log(`[pipeline] Caption not an event, trying visual analysis for post ${post.id}...`);
+        event = await parseEventFromImage(
+          post.image_url,
+          post.caption,
+          "instagram",
+          post.permalink
+        );
+      }
+
+      // If we have an event from caption but required fields are missing, run vision once and merge.
+      if (event && hasMissingRequiredFields(event) && post.image_url) {
+        const visionEvent = await parseEventFromImage(
+          post.image_url,
+          post.caption,
+          "instagram",
+          post.permalink
+        );
+        if (visionEvent) {
+          event = mergeVisionIntoEvent(event, visionEvent);
+        }
+      }
+
       if (!event) {
-        console.log(`[pipeline] Post ${post.id} is not an event, skipping`);
+        const snippet = post.caption?.slice(0, 80).replace(/\n/g, " ") ?? "(no caption)";
+        console.log(`[pipeline] Post ${post.id} is not an event, skipping. Caption snippet: "${snippet}${(post.caption?.length ?? 0) > 80 ? "…" : ""}"`);
         result.skipped++;
         continue;
       }
@@ -90,8 +140,10 @@ export async function ingestFromInstagram(
 
       if (status === "error") {
         result.errors++;
-      } else {
+      } else if (status === "inserted") {
         result.inserted++;
+      } else {
+        result.skipped++;
       }
     }
   }
@@ -100,22 +152,55 @@ export async function ingestFromInstagram(
 }
 
 // Run as standalone script: npx tsx src/lib/ingestion/instagram-pipeline.ts
-const isMainModule =
-  typeof require !== "undefined" &&
-  require.main === module;
+const isMainModule = process.argv[1]?.includes("instagram-pipeline") ?? false;
 
 if (isMainModule) {
-  // eslint-disable-next-line @typescript-eslint/no-require-requires
-  require("dotenv").config({ path: ".env.local" });
+  config({ path: ".env" });
+  config({ path: ".env.local" });
 
   const accountsEnv = process.env.INSTAGRAM_ACCOUNTS;
   if (!accountsEnv) {
-    console.error("INSTAGRAM_ACCOUNTS env var is required (comma-separated usernames)");
+    console.error("[pipeline] INSTAGRAM_ACCOUNTS env var is required (comma-separated usernames)");
     process.exit(1);
   }
 
   const accounts = accountsEnv.split(",").map((a) => a.trim()).filter(Boolean);
-  console.log(`[pipeline] Starting ingestion for accounts: ${accounts.join(", ")}`);
+  const hasRapid = !!process.env.RAPIDAPI_KEY;
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
+  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+  const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const hasSupabaseKey =
+    !!process.env.SUPABASE_SECRET_KEY || !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  console.log("[pipeline] Preflight:");
+  console.log(`  INSTAGRAM_ACCOUNTS: ${accounts.length} account(s) (${accounts.join(", ")})`);
+  console.log(`  RAPIDAPI_KEY: ${hasRapid ? "set" : "MISSING"}`);
+  console.log(
+    `  LLM: ${hasOpenAI ? "OPENAI_API_KEY (text + vision)" : hasAnthropic ? "ANTHROPIC_API_KEY (text + vision)" : "MISSING (set OPENAI_API_KEY or ANTHROPIC_API_KEY)"}`
+  );
+  console.log(`  Supabase URL: ${hasSupabaseUrl ? "set" : "MISSING"}`);
+  console.log(
+    `  Supabase key: ${hasSupabaseKey ? "set (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY)" : "MISSING"}`
+  );
+
+  if (!hasRapid) {
+    console.error("[pipeline] Aborting: RAPIDAPI_KEY is required to fetch Instagram posts.");
+    process.exit(1);
+  }
+  if (!hasOpenAI && !hasAnthropic) {
+    console.error(
+      "[pipeline] Aborting: set OPENAI_API_KEY or ANTHROPIC_API_KEY for caption/image parsing."
+    );
+    process.exit(1);
+  }
+  if (!hasSupabaseUrl || !hasSupabaseKey) {
+    console.error(
+      "[pipeline] Aborting: NEXT_PUBLIC_SUPABASE_URL and Supabase service key are required."
+    );
+    process.exit(1);
+  }
+
+  console.log("[pipeline] Starting ingestion…");
 
   ingestFromInstagram(accounts)
     .then((result) => {

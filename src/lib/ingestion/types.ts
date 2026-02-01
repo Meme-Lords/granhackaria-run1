@@ -13,6 +13,7 @@ export interface RawEvent {
   date_start: string; // ISO date string (YYYY-MM-DD)
   time: string | null; // HH:MM format
   location: string;
+  ticket_price: string | null; // e.g. "15€", "Free", "From 10€"
   category:
     | "music"
     | "arts"

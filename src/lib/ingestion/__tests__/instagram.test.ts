@@ -9,8 +9,12 @@ beforeEach(() => {
   vi.stubEnv("RAPIDAPI_KEY", "test-key");
 });
 
+// Posts must have taken_at within last 2 days to pass the filter
+const recentTakenAt = () => Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+
 describe("fetchAccountPosts", () => {
   it("returns parsed posts from the API response", async () => {
+    const oneHourAgo = recentTakenAt();
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -21,14 +25,14 @@ describe("fetchAccountPosts", () => {
               caption: { text: "Concert tonight!" },
               image_versions2: { candidates: [{ url: "https://img.example.com/1.jpg" }] },
               code: "ABC123",
-              taken_at: 1706745600,
+              taken_at: oneHourAgo,
             },
             {
               id: "456",
               caption: { text: "Art show this weekend" },
               image_versions2: { candidates: [{ url: "https://img.example.com/2.jpg" }] },
               code: "DEF456",
-              taken_at: 1706832000,
+              taken_at: oneHourAgo - 3600,
             },
           ],
         },
@@ -86,7 +90,7 @@ describe("fetchAccountPosts", () => {
             {
               id: "789",
               code: "GHI789",
-              taken_at: 1706745600,
+              taken_at: recentTakenAt(),
             },
           ],
         },
@@ -100,11 +104,12 @@ describe("fetchAccountPosts", () => {
   });
 
   it("respects the count parameter", async () => {
+    const baseTime = recentTakenAt();
     const items = Array.from({ length: 20 }, (_, i) => ({
       id: String(i),
       caption: { text: `Post ${i}` },
       code: `CODE${i}`,
-      taken_at: 1706745600 + i,
+      taken_at: baseTime - i,
     }));
 
     mockFetch.mockResolvedValueOnce({
@@ -115,5 +120,28 @@ describe("fetchAccountPosts", () => {
     const posts = await fetchAccountPosts("testuser", 5);
 
     expect(posts).toHaveLength(5);
+  });
+
+  it("filters out posts older than POSTS_DAYS_BACK", async () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const fourDaysAgo = nowSec - 4 * 24 * 60 * 60;
+    const oneDayAgo = nowSec - 1 * 24 * 60 * 60;
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          items: [
+            { id: "old", caption: { text: "Old" }, code: "OLD", taken_at: fourDaysAgo },
+            { id: "recent", caption: { text: "Recent" }, code: "REC", taken_at: oneDayAgo },
+          ],
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].id).toBe("recent");
   });
 });

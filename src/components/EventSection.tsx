@@ -1,17 +1,23 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
+import { Sun, Sunrise, CalendarRange } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { EventCard, EventCardProps } from "./EventCard";
 
+const SECTION_ICONS = {
+  today: Sun,
+  tomorrow: Sunrise,
+  thisWeek: CalendarRange,
+} as const;
+
 interface EventSectionProps {
-  icon: LucideIcon;
   titleKey: "today" | "tomorrow" | "thisWeek";
   events: EventCardProps[];
 }
 
-export function EventSection({ icon: Icon, titleKey, events }: EventSectionProps) {
+export function EventSection({ titleKey, events }: EventSectionProps) {
   const { t } = useI18n();
+  const Icon = SECTION_ICONS[titleKey];
 
   return (
     <section className="flex flex-col gap-4 sm:gap-6 w-full">

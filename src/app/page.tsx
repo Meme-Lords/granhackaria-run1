@@ -1,4 +1,3 @@
-import { Sun, Sunrise, CalendarRange } from "lucide-react";
 import { Header, Hero, EventSection, Footer } from "@/components";
 import {
   getTodayEvents,
@@ -18,9 +17,9 @@ export default async function EventListingsPage() {
       <Header />
       <Hero />
       <main className="flex flex-col gap-8 sm:gap-10 md:gap-12 w-full px-4 sm:px-6 md:px-12 py-6 sm:py-8">
-        <EventSection icon={Sun} titleKey="today" events={todayEvents} />
-        <EventSection icon={Sunrise} titleKey="tomorrow" events={tomorrowEvents} />
-        <EventSection icon={CalendarRange} titleKey="thisWeek" events={weekEvents} />
+        <EventSection titleKey="today" events={todayEvents} />
+        <EventSection titleKey="tomorrow" events={tomorrowEvents} />
+        <EventSection titleKey="thisWeek" events={weekEvents} />
       </main>
       <Footer />
     </div>

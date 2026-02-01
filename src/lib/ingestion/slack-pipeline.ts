@@ -13,12 +13,13 @@ interface PipelineResult {
 function createSupabaseAdmin(): SupabaseClient<any> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
+    process.env.SUPABASE_SECRET_KEY ??
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY)"
     );
   }
 
@@ -38,6 +39,7 @@ async function upsertEvent(
       time: event.time,
       location: event.location,
       category: event.category,
+      ticket_price: event.ticket_price,
       image_url: event.image_url,
       source: event.source,
       source_url: event.source_url,

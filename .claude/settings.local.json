@@ -43,11 +43,17 @@
       "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" add .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/ROADMAP.md .planning/STATE.md .planning/phases/)",
       "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" commit -m \"$\\(cat <<''EOF''\nfeat\\(gsd\\): define project plan, requirements, roadmap, and Phase 01 execution plans\n\n- PROJECT.md: EventosGC vision, scope, tech stack\n- REQUIREMENTS.md: 14 functional + 4 non-functional requirements\n- ROADMAP.md: 6 phases from Supabase setup to deployment\n- Phase 01 Plan 01: Supabase client config + Event types\n- Phase 01 Plan 02: Database schema migration + seed data\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" add .planning/phases/)",
-      "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" commit -m \"$\\(cat <<''EOF''\nfeat\\(gsd\\): add execution plans for all 6 phases\n\nPhase 02: Wire frontend \\(query functions + replace hardcoded data\\)\nPhase 03: Instagram ingestion \\(RapidAPI fetcher + AI parser + pipeline\\)\nPhase 04: Slack ingestion \\(Slack API + reuse AI parser + pipeline\\)\nPhase 05: Scheduling \\(cron API route + Vercel cron config\\)\nPhase 06: Polish & deploy \\(view-all pages, responsive, loading states, deploy\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git -C \"C:\\\\Users\\\\lange\\\\Documents\\\\Repos\\\\granhackaria-run1\" commit -m \"$\\(cat <<''EOF''\nfeat\\(gsd\\): add execution plans for all 6 phases\n\nPhase 02: Wire frontend \\(query functions + replace hardcoded data\\)\nPhase 03: Instagram ingestion \\(RapidAPI fetcher + AI parser + pipeline\\)\nPhase 04: Slack ingestion \\(Slack API + reuse AI parser + pipeline\\)\nPhase 05: Scheduling \\(cron API route + Vercel cron config\\)\nPhase 06: Polish & deploy \\(view-all pages, responsive, loading states, deploy\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nRemove broken MCP configuration\n\nRemoves .mcp.json causing 400 errors due to missing RAPIDAPI_KEY.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "WebFetch(domain:rapidapi.com)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "RapidAPI Hub - instagram"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

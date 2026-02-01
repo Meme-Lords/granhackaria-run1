@@ -11,6 +11,7 @@ interface EventRow {
   time: string | null;
   location: string;
   category: string;
+  ticket_price: string | null;
   image_url: string | null;
   source: string;
   source_url: string | null;

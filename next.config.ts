@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Silence "multiple lockfiles" warning: use this repo as Turbopack root
+  turbopack: {
+    root: process.cwd(),
+  },
   images: {
     remotePatterns: [
       {
