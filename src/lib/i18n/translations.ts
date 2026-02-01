@@ -25,6 +25,11 @@ export const translations = {
       noEvents: "No events scheduled",
     },
 
+    filter: {
+      all: "All",
+      ariaLabel: "Filter events by category",
+    },
+
     event: {
       viewOriginal: "View Original",
       close: "Close",
@@ -311,6 +316,11 @@ export const translations = {
       thisWeek: "Esta Semana",
       viewAll: "Ver todos →",
       noEvents: "No hay eventos programados",
+    },
+
+    filter: {
+      all: "Todos",
+      ariaLabel: "Filtrar eventos por categoría",
     },
 
     event: {

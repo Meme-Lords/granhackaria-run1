@@ -1,5 +1,6 @@
 export { Header } from "./Header";
 export { Hero } from "./Hero";
+export { CategoryFilterBar } from "./CategoryFilterBar";
 export { CategoryLabel } from "./CategoryLabel";
 export type { CategoryVariant } from "./CategoryLabel";
 export { EventCard } from "./EventCard";

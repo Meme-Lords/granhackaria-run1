@@ -41,21 +41,44 @@ function toEventCardProps(row: EventRow, showClock: boolean): EventCardProps {
   };
 }
 
+const CATEGORY_VARIANTS: CategoryVariant[] = [
+  "music",
+  "arts",
+  "food",
+  "sports",
+  "festival",
+  "theater",
+  "workshop",
+  "market",
+];
+
+function isValidCategory(value: string | undefined): value is CategoryVariant {
+  return value !== undefined && (CATEGORY_VARIANTS as string[]).includes(value);
+}
+
 function getDateString(offset: number): string {
   const d = new Date();
   d.setDate(d.getDate() + offset);
   return d.toISOString().split("T")[0];
 }
 
-export async function getTodayEvents(): Promise<EventCardProps[]> {
+export async function getTodayEvents(
+  category?: string
+): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
   const today = getDateString(0);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("events")
     .select("*")
     .eq("date_start", today)
     .order("time", { ascending: true });
+
+  if (isValidCategory(category)) {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Failed to fetch today events:", error.message);
@@ -65,15 +88,23 @@ export async function getTodayEvents(): Promise<EventCardProps[]> {
   return (data as EventRow[]).map((row) => toEventCardProps(row, true));
 }
 
-export async function getTomorrowEvents(): Promise<EventCardProps[]> {
+export async function getTomorrowEvents(
+  category?: string
+): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
   const tomorrow = getDateString(1);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("events")
     .select("*")
     .eq("date_start", tomorrow)
     .order("time", { ascending: true });
+
+  if (isValidCategory(category)) {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Failed to fetch tomorrow events:", error.message);
@@ -83,19 +114,27 @@ export async function getTomorrowEvents(): Promise<EventCardProps[]> {
   return (data as EventRow[]).map((row) => toEventCardProps(row, false));
 }
 
-export async function getThisWeekEvents(): Promise<EventCardProps[]> {
+export async function getThisWeekEvents(
+  category?: string
+): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
   const tomorrow = getDateString(1);
   // End of week: 7 days from now
   const weekEnd = getDateString(7);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("events")
     .select("*")
     .gt("date_start", tomorrow)
     .lte("date_start", weekEnd)
     .order("date_start", { ascending: true })
     .order("time", { ascending: true });
+
+  if (isValidCategory(category)) {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Failed to fetch this week events:", error.message);
