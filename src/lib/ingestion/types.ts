@@ -29,6 +29,6 @@ export interface RawEvent {
     | "workshop"
     | "market";
   image_url: string | null;
-  source: "instagram" | "slack" | "manual";
+  source: "instagram" | "slack" | "meetup" | "manual";
   source_url: string | null;
 }
