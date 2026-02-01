@@ -30,11 +30,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- restore locale from localStorage on mount (hydration-safe) */
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (stored && (stored === "en" || stored === "es")) {
       setLocaleState(stored);
     }
     setMounted(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const setLocale = (newLocale: Locale) => {

@@ -104,7 +104,6 @@ const isMainModule =
   require.main === module;
 
 if (isMainModule) {
-  // eslint-disable-next-line @typescript-eslint/no-require-requires
   require("dotenv").config({ path: ".env.local" });
 
   const channelId = process.env.SLACK_CHANNEL_ID;
