@@ -53,7 +53,12 @@ describe("ingestFromSlack", () => {
 
     mockParseEventFromText.mockResolvedValue({
       title: "Test Event",
+      title_en: "Test Event",
+      title_es: "Evento de Prueba",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "en",
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",
@@ -111,7 +116,12 @@ describe("ingestFromSlack", () => {
 
     mockParseEventFromText.mockResolvedValueOnce({
       title: "Test Event",
+      title_en: "Test Event",
+      title_es: "Evento de Prueba",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "en",
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",

@@ -63,7 +63,12 @@ describe("ingestFromInstagram", () => {
 
     mockParseEventFromText.mockResolvedValue({
       title: "Test Event",
+      title_en: "Test Event",
+      title_es: "Evento de Prueba",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "en",
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",
@@ -138,7 +143,12 @@ describe("ingestFromInstagram", () => {
 
     mockParseEventFromText.mockResolvedValueOnce({
       title: "Test Event",
+      title_en: "Test Event",
+      title_es: "Evento de Prueba",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "en",
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",
@@ -173,7 +183,12 @@ describe("ingestFromInstagram", () => {
 
     mockParseEventFromText.mockResolvedValueOnce({
       title: "Test Event",
+      title_en: "Test Event",
+      title_es: "Evento de Prueba",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "en",
       date_start: "2026-02-01",
       time: "20:00",
       location: "Las Palmas",
@@ -220,7 +235,12 @@ describe("ingestFromInstagram", () => {
     mockParseEventFromText.mockResolvedValueOnce(null);
     mockParseEventFromImage.mockResolvedValueOnce({
       title: "Poster Event",
+      title_en: "Poster Event",
+      title_es: "Evento del Póster",
       description: "From poster",
+      description_en: "From poster",
+      description_es: "Del póster",
+      source_language: "en",
       date_start: "2026-03-01",
       time: "20:00",
       location: "Auditorio",
@@ -260,7 +280,12 @@ describe("ingestFromInstagram", () => {
 
     mockParseEventFromText.mockResolvedValueOnce({
       title: "Concert",
+      title_en: "Concert",
+      title_es: "Concierto",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "en",
       date_start: "",
       time: null,
       location: "TBD",
@@ -273,7 +298,12 @@ describe("ingestFromInstagram", () => {
 
     mockParseEventFromImage.mockResolvedValueOnce({
       title: "Concert",
+      title_en: "Concert",
+      title_es: "Concierto",
       description: "Live music night",
+      description_en: "Live music night",
+      description_es: "Noche de música en vivo",
+      source_language: "en",
       date_start: "2026-04-15",
       time: "21:00",
       location: "TBD",
@@ -298,7 +328,11 @@ describe("ingestFromInstagram", () => {
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Concert",
+        title_en: "Concert",
+        title_es: "Concierto",
         description: "Live music night",
+        description_en: "Live music night",
+        description_es: "Noche de música en vivo",
         date_start: "2026-04-15",
         time: "21:00",
         ticket_price: "15€",

@@ -28,7 +28,7 @@ function mockLLMResponse(text: string) {
 }
 
 describe("parseEventFromText", () => {
-  it("parses an event caption into a RawEvent", async () => {
+  it("parses an event caption into a bilingual RawEvent", async () => {
     vi.resetModules();
     vi.doMock("@anthropic-ai/sdk", () => ({
       default: class MockAnthropic {
@@ -39,8 +39,11 @@ describe("parseEventFromText", () => {
 
     mockLLMResponse(
       JSON.stringify({
-        title: "Jazz Night at Vegueta",
-        description: "Live jazz in the old town",
+        title_en: "Jazz Night at Vegueta",
+        title_es: "Noche de Jazz en Vegueta",
+        description_en: "Live jazz in the old town",
+        description_es: "Jazz en vivo en el casco antiguo",
+        source_language: "en",
         date_start: "2026-02-01",
         time: "20:00",
         location: "Plaza de Santa Ana",
@@ -57,7 +60,12 @@ describe("parseEventFromText", () => {
 
     expect(result).toEqual({
       title: "Jazz Night at Vegueta",
+      title_en: "Jazz Night at Vegueta",
+      title_es: "Noche de Jazz en Vegueta",
       description: "Live jazz in the old town",
+      description_en: "Live jazz in the old town",
+      description_es: "Jazz en vivo en el casco antiguo",
+      source_language: "en",
       date_start: "2026-02-01",
       time: "20:00",
       location: "Plaza de Santa Ana",
@@ -132,8 +140,11 @@ describe("parseEventFromText", () => {
 
     mockLLMResponse(
       JSON.stringify({
-        title: "Fun Gathering",
-        description: null,
+        title_en: "Fun Gathering",
+        title_es: "Reunión Divertida",
+        description_en: null,
+        description_es: null,
+        source_language: "en",
         date_start: "2026-02-01",
         time: null,
         location: "Las Palmas",
@@ -195,8 +206,11 @@ describe("parseEventFromText", () => {
     const { parseEventFromText } = await import("../parser");
 
     const eventJson = {
-      title: "Fenced Event",
-      description: "In fences",
+      title_en: "Fenced Event",
+      title_es: "Evento Cercado",
+      description_en: "In fences",
+      description_es: "En cercas",
+      source_language: "en",
       date_start: "2026-02-15",
       time: "19:00",
       location: "Teatro Cuyás",
@@ -212,7 +226,12 @@ describe("parseEventFromText", () => {
 
     expect(result).toMatchObject({
       title: "Fenced Event",
+      title_en: "Fenced Event",
+      title_es: "Evento Cercado",
       description: "In fences",
+      description_en: "In fences",
+      description_es: "En cercas",
+      source_language: "en",
       date_start: "2026-02-15",
       time: "19:00",
       location: "Teatro Cuyás",
@@ -227,8 +246,11 @@ describe("parseEventFromText", () => {
 
     mockLLMResponse(
       JSON.stringify({
-        title: null,
-        description: null,
+        title_en: null,
+        title_es: null,
+        description_en: null,
+        description_es: null,
+        source_language: "unknown",
         date_start: "2026-03-01",
         time: null,
         location: 123,
@@ -245,7 +267,12 @@ describe("parseEventFromText", () => {
 
     expect(result).toMatchObject({
       title: "",
+      title_en: "",
+      title_es: "",
       description: null,
+      description_en: null,
+      description_es: null,
+      source_language: "unknown",
       date_start: "2026-03-01",
       time: null,
       location: "Gran Canaria",
@@ -266,8 +293,11 @@ describe("parseEventFromText", () => {
         {
           message: {
             content: JSON.stringify({
-              title: "OpenAI Jazz Night",
-              description: "Live music",
+              title_en: "OpenAI Jazz Night",
+              title_es: "Noche de Jazz OpenAI",
+              description_en: "Live music",
+              description_es: "Música en vivo",
+              source_language: "en",
               date_start: "2026-02-20",
               time: "21:00",
               location: "Casa de Colón",
@@ -286,6 +316,8 @@ describe("parseEventFromText", () => {
 
     expect(result).toMatchObject({
       title: "OpenAI Jazz Night",
+      title_en: "OpenAI Jazz Night",
+      title_es: "Noche de Jazz OpenAI",
       location: "Casa de Colón",
       ticket_price: "Free",
       category: "music",
@@ -309,6 +341,34 @@ describe("parseEventFromText", () => {
 
     expect(result).toBeNull();
   });
+
+  it("sets fallback title from Spanish when source_language is es", async () => {
+    vi.resetModules();
+    const { parseEventFromText } = await import("../parser");
+
+    mockLLMResponse(
+      JSON.stringify({
+        title_en: "Flamenco Night",
+        title_es: "Noche de Flamenco",
+        description_en: "Live flamenco show",
+        description_es: "Espectáculo de flamenco en vivo",
+        source_language: "es",
+        date_start: "2026-03-10",
+        time: "21:00",
+        location: "Centro Cultural",
+        category: "music",
+      })
+    );
+
+    const result = await parseEventFromText(
+      "¡Noche de Flamenco en el Centro Cultural! 10 de marzo a las 21h.",
+      "instagram"
+    );
+
+    expect(result?.title).toBe("Noche de Flamenco");
+    expect(result?.description).toBe("Espectáculo de flamenco en vivo");
+    expect(result?.source_language).toBe("es");
+  });
 });
 
 describe("parseEventFromImage", () => {
@@ -323,7 +383,7 @@ describe("parseEventFromImage", () => {
     });
   });
 
-  it("extracts event from image via Anthropic vision", async () => {
+  it("extracts bilingual event from image via Anthropic vision", async () => {
     vi.resetModules();
     const { parseEventFromImage } = await import("../parser");
 
@@ -332,8 +392,11 @@ describe("parseEventFromImage", () => {
         {
           type: "text",
           text: JSON.stringify({
-            title: "Poster Event",
-            description: "From poster",
+            title_en: "Poster Event",
+            title_es: "Evento del Póster",
+            description_en: "From poster",
+            description_es: "Del póster",
+            source_language: "en",
             date_start: "2026-04-10",
             time: "20:00",
             location: "Auditorio",
@@ -353,7 +416,12 @@ describe("parseEventFromImage", () => {
 
     expect(result).toMatchObject({
       title: "Poster Event",
+      title_en: "Poster Event",
+      title_es: "Evento del Póster",
       description: "From poster",
+      description_en: "From poster",
+      description_es: "Del póster",
+      source_language: "en",
       date_start: "2026-04-10",
       time: "20:00",
       location: "Auditorio",
