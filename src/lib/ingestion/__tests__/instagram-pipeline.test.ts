@@ -23,7 +23,13 @@ vi.mock("@supabase/supabase-js", () => ({
   }),
 }));
 
+vi.mock("@/lib/statsig/server", () => ({
+  getInstagramAccountsFromStatsig: vi.fn(),
+  getPostsDaysBackFromStatsig: vi.fn().mockResolvedValue(14),
+}));
+
 import { ingestFromInstagram } from "../instagram-pipeline";
+import { getInstagramAccountsFromStatsig } from "@/lib/statsig/server";
 import { fetchAccountPosts } from "../instagram";
 import { parseEventFromText, parseEventFromImage } from "../parser";
 
@@ -341,6 +347,8 @@ describe("ingestFromInstagram", () => {
   });
 
   it("runs CLI block when executed as main module", async () => {
+    vi.mocked(getInstagramAccountsFromStatsig).mockResolvedValue(["acc1"]);
+
     const origArgv = process.argv.slice();
     process.argv[1] = "/path/to/instagram-pipeline.ts";
 

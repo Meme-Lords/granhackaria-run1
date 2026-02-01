@@ -2,11 +2,20 @@
 
 ## Current Status
 
-**Project Phase:** Phase 08 — Bilingual Event Content (completed)
+**Project Phase:** Phase 07 — Meetup Ingestion (completed)
 **Last Updated:** 2026-02-01
-**Next Step:** Run migration script, apply DB migration, then Phase 09+
+**Next Step:** Apply migration 004 if not yet applied, then Phase 08/09+
 
 ## Completed Phases
+
+### Phase 07: Meetup Ingestion
+- Meetup OAuth2 helpers (`src/lib/meetup/auth.ts`) and token refresh
+- Meetup GraphQL fetcher and transform (`src/lib/ingestion/meetup.ts`) for Gran Canaria (lat/lon, 50km)
+- Meetup pipeline (`src/lib/ingestion/meetup-pipeline.ts`) with upsert by source_url
+- Cron route runs Meetup when MEETUP_CLIENT_ID + MEETUP_REFRESH_TOKEN set; skips otherwise
+- Migration 004: events source CHECK includes 'meetup'
+- 24 new tests (auth, meetup, meetup-pipeline, cron)
+- See `.planning/phases/07-meetup-ingestion/07-SUMMARY.md`
 
 ### Phase 08: Bilingual Event Content
 - Added bilingual columns (title_en, title_es, description_en, description_es, source_language) to events table
@@ -72,19 +81,21 @@
 - Instagram fetcher via RapidAPI instagram120 endpoint
 - Slack ingestion pipeline (fetch -> AI parse -> Supabase upsert)
 - Slack fetcher via @slack/web-api with incremental fetch support
-- Cron API route for automated ingestion (`/api/cron/ingest`)
+- Meetup ingestion pipeline (fetch -> transform -> Supabase upsert)
+- Meetup OAuth2 auth and GraphQL fetcher for Gran Canaria events
+- Cron API route for automated ingestion (`/api/cron/ingest`) — Instagram, Slack, Meetup
 - Vercel cron configuration (every 15 minutes)
 - Bilingual event content (title_en/title_es, description_en/description_es)
 - Locale-aware queries (pass locale, select bilingual columns with fallback)
 - Server-side locale detection via cookies
 - LocaleMetadata component (html lang, document title, meta description)
 - Batch migration script for existing events (`scripts/migrate-events-bilingual.ts`)
-- Vitest test suite (83 tests)
+- Vitest test suite (109 tests; Phase 07 added Meetup auth, fetcher, pipeline, cron tests)
 - GSD and Ralphy tooling installed
 
 ## Decisions
 
-- **Sources (v1):** Instagram (via RapidAPI) + Slack (specific workspace)
+- **Sources (v1):** Instagram (via RapidAPI) + Slack (specific workspace) + Meetup (GraphQL API)
 - **Backend:** Supabase for event storage and API only (no auth)
 - **User model:** Aggregator only — no user submissions, no accounts
 - **Categories:** music, arts, food, sports, festival, theater, workshop, market
@@ -104,4 +115,6 @@
 - Required env vars for Instagram ingestion: RAPIDAPI_KEY, ANTHROPIC_API_KEY, INSTAGRAM_ACCOUNTS
 - Slack ingestion pipeline is runnable as: `npx tsx src/lib/ingestion/slack-pipeline.ts`
 - Required env vars for Slack ingestion: SLACK_BOT_TOKEN, SLACK_CHANNEL_ID, ANTHROPIC_API_KEY
+- Meetup ingestion pipeline runnable as: `npx tsx src/lib/ingestion/meetup-pipeline.ts`
+- Required env vars for Meetup ingestion: MEETUP_CLIENT_ID, MEETUP_CLIENT_SECRET, MEETUP_REFRESH_TOKEN
 - Slack bot needs: channels:history + channels:read scopes
