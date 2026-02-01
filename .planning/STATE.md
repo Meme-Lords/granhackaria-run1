@@ -2,11 +2,19 @@
 
 ## Current Status
 
-**Project Phase:** Phase 04 — Slack Ingestion (completed)
-**Last Updated:** 2026-01-31
-**Next Step:** Execute Phase 05 (if planned)
+**Project Phase:** Phase 05 — Scheduling (completed)
+**Last Updated:** 2026-02-01
+**Next Step:** Execute Phase 06 (if planned)
 
 ## Completed Phases
+
+### Phase 05: Scheduling
+- Created cron API route at `/api/cron/ingest` with CRON_SECRET authorization
+- Runs both Instagram and Slack pipelines independently (failure isolation)
+- Returns JSON with combined results and timestamps
+- Configured Vercel cron in `vercel.json` (every 15 minutes)
+- Added 7 tests for the cron route (37 total)
+- See `.planning/phases/05-scheduling/01-SUMMARY.md`
 
 ### Phase 04: Slack Ingestion
 - Created Slack fetcher via @slack/web-api (`src/lib/ingestion/slack.ts`)
@@ -53,7 +61,9 @@
 - Instagram fetcher via RapidAPI instagram120 endpoint
 - Slack ingestion pipeline (fetch -> AI parse -> Supabase upsert)
 - Slack fetcher via @slack/web-api with incremental fetch support
-- Vitest test suite (30 tests)
+- Cron API route for automated ingestion (`/api/cron/ingest`)
+- Vercel cron configuration (every 15 minutes)
+- Vitest test suite (37 tests)
 - GSD and Ralphy tooling installed
 
 ## Decisions
