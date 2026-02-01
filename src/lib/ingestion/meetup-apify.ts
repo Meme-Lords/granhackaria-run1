@@ -1,16 +1,18 @@
 /**
- * Meetup ingestion via Apify Event Scraper Pro (webdatalabs/event-scraper-pro).
+ * Meetup ingestion via Apify: Event Scraper Pro (multi-platform) or filip_cicvarek/meetup-scraper (Meetup only).
  * Targets Gran Canaria; used when Meetup OAuth credentials are not set.
- * Returns coverImageUrl for event images.
+ * Switch with MEETUP_APIFY_ACTOR=event-scraper-pro | meetup-scraper (default: event-scraper-pro).
  */
 
 import { keywordCategory } from "./meetup";
 import type { RawEvent } from "./types";
 
-const APIFY_ACTOR_ID = "webdatalabs~event-scraper-pro";
+const ACTOR_EVENT_SCRAPER_PRO = "webdatalabs~event-scraper-pro";
+const ACTOR_MEETUP_SCRAPER = "filip_cicvarek~meetup-scraper";
+const DEFAULT_APIFY_ACTOR = "event-scraper-pro";
 const DEFAULT_CITIES = ["Las Palmas"];
 const DEFAULT_COUNTRY = "ES";
-const DEFAULT_MAX_ITEMS_PER_PLATFORM = 3;
+const DEFAULT_MAX_ITEMS_PER_PLATFORM = 2;
 /** Event Scraper Pro requires maxItemsPerPlatform >= 10; we request this then slice to requested limit. */
 const APIFY_MIN_MAX_ITEMS_PER_PLATFORM = 10;
 /** Broader default keywords for Gran Canaria tech/community events (Actor requires at least one). */
@@ -38,6 +40,25 @@ function parseKeywordsEnv(value: string | undefined): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+/** filip_cicvarek/meetup-scraper output item shape (inferred from Actor). */
+export interface MeetupScraperItem {
+  eventId?: string;
+  eventName?: string;
+  eventUrl?: string;
+  eventDescription?: string | null;
+  eventType?: string;
+  date?: string;
+  address?: string | null;
+  organizedByGroup?: string | null;
+  groupUrlname?: string | null;
+  isPaidEvent?: boolean;
+  feeAmount?: number | null;
+  feeCurrency?: string | null;
+  feeRequired?: unknown;
+  maxAttendees?: number | null;
+  actualAttendees?: number;
 }
 
 /** Event Scraper Pro output item shape (inferred from Actor). */
@@ -153,6 +174,62 @@ export function transformApifyMeetupItem(item: ApifyMeetupItem): RawEvent {
 }
 
 /**
+ * Transform a filip_cicvarek/meetup-scraper item into RawEvent format.
+ * Actor does not return image URL; image_url is null.
+ */
+export function transformMeetupScraperItem(item: MeetupScraperItem): RawEvent {
+  const title = (item.eventName ?? "").trim() || "Untitled Event";
+  const desc = item.eventDescription?.trim() ?? null;
+  const combinedText = [item.eventName, item.eventDescription, item.organizedByGroup].filter(Boolean).join(" ");
+  const category = keywordCategory(combinedText);
+
+  let date_start = "";
+  let time: string | null = null;
+  if (item.date) {
+    try {
+      const date = new Date(item.date);
+      date_start = date.toISOString().split("T")[0];
+      time = date.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: TIMEZONE,
+      });
+    } catch {
+      // leave date_start empty, time null
+    }
+  }
+
+  const location = item.address?.trim() || "Online";
+
+  let ticket_price: string | null = null;
+  if (item.isPaidEvent && item.feeAmount != null) {
+    const curr = item.feeCurrency?.trim() || "€";
+    ticket_price = `${item.feeAmount}${curr}`;
+  } else if (item.feeAmount === 0 || !item.isPaidEvent) {
+    ticket_price = "Free";
+  }
+
+  return {
+    title,
+    title_en: title,
+    title_es: title,
+    description: desc,
+    description_en: desc,
+    description_es: desc,
+    source_language: "unknown",
+    date_start,
+    time,
+    location,
+    ticket_price,
+    category,
+    image_url: null,
+    source: "meetup",
+    source_url: item.eventUrl ?? null,
+  };
+}
+
+/**
  * Fetch Meetup events from Apify Event Scraper Pro for Gran Canaria.
  * Uses run-sync-get-dataset-items (waits up to 300s). Requires APIFY_API_TOKEN.
  * Only returns items with platform === "meetup".
@@ -215,7 +292,7 @@ export async function fetchMeetupEventsFromApify(options?: {
     includePaid: true,
   };
 
-  const url = `https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`;
+  const url = `https://api.apify.com/v2/acts/${ACTOR_EVENT_SCRAPER_PRO}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -247,4 +324,80 @@ export async function fetchMeetupEventsFromApify(options?: {
     byPlatform.set(p, list);
   }
   return Array.from(byPlatform.values()).flat();
+}
+
+/**
+ * Which Apify Actor to use for Meetup ingestion.
+ * Read from MEETUP_APIFY_ACTOR: "event-scraper-pro" (default) | "meetup-scraper".
+ */
+export function getApifyActor(): "event-scraper-pro" | "meetup-scraper" {
+  const v = (process.env.MEETUP_APIFY_ACTOR ?? "").trim().toLowerCase();
+  if (v === "meetup-scraper") return "meetup-scraper";
+  return "event-scraper-pro";
+}
+
+/**
+ * Fetch Meetup events from filip_cicvarek/meetup-scraper (Meetup only).
+ * Uses run-sync-get-dataset-items. Requires APIFY_API_TOKEN.
+ * No image URL in output; image_url will be null in RawEvent.
+ */
+export async function fetchMeetupEventsFromMeetupScraper(options?: {
+  searchKeyword?: string;
+  city?: string;
+  country?: string;
+  maxResults?: number;
+  startDateRange?: string;
+}): Promise<MeetupScraperItem[]> {
+  const token = process.env.APIFY_API_TOKEN;
+  if (!token) {
+    throw new Error("APIFY_API_TOKEN is not set");
+  }
+
+  const city =
+    options?.city ??
+    process.env.MEETUP_APIFY_CITY ??
+    DEFAULT_CITIES[0];
+  const country =
+    options?.country ?? process.env.MEETUP_APIFY_COUNTRY ?? DEFAULT_COUNTRY;
+  const envKeywords = parseKeywordsEnv(process.env.MEETUP_APIFY_KEYWORDS);
+  const searchKeyword =
+    options?.searchKeyword ??
+    (envKeywords.length > 0 ? envKeywords[0] : "meetup");
+  const maxResults =
+    options?.maxResults ??
+    (process.env.MEETUP_APIFY_MAX_RESULTS
+      ? Number.parseInt(process.env.MEETUP_APIFY_MAX_RESULTS, 10)
+      : undefined) ??
+    DEFAULT_MAX_ITEMS_PER_PLATFORM;
+  const startDateRange = options?.startDateRange;
+
+  const input: Record<string, unknown> = {
+    city,
+    country: country.length === 2 ? country.toLowerCase() : country,
+    maxResults,
+    searchKeyword,
+  };
+  if (startDateRange != null && startDateRange !== "") {
+    input.startDateRange = startDateRange;
+  }
+
+  const url = `https://api.apify.com/v2/acts/${ACTOR_MEETUP_SCRAPER}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Apify API error (${res.status}): ${text}`);
+  }
+
+  const items = (await res.json()) as MeetupScraperItem[];
+  if (!Array.isArray(items)) {
+    throw new Error("Apify API did not return an array of items");
+  }
+  return items.filter(
+    (item) => item && (item.eventId || item.eventUrl || item.eventName)
+  );
 }

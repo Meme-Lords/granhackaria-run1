@@ -1,10 +1,17 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { fetchImageUrlFromPage } from "./fetch-event-image";
 import { fetchMeetupEvents, transformMeetupEvent } from "./meetup";
+import { translateEventToBilingual } from "./translate-event";
 import {
   fetchMeetupEventsFromApify,
+  fetchMeetupEventsFromMeetupScraper,
+  getApifyActor,
   transformApifyMeetupItem,
+  transformMeetupScraperItem,
 } from "./meetup-apify";
 import type { RawEvent } from "./types";
+
+const IMAGE_FETCH_DELAY_MS = 300;
 
 export interface PipelineResult {
   inserted: number;
@@ -96,14 +103,25 @@ export async function ingestFromMeetup(): Promise<PipelineResult> {
       if (outcome === "continue") continue;
     }
   } else {
-    console.log("[meetup-pipeline] Fetching Meetup events via Apify scraper (Gran Canaria)...");
-    const items = await fetchMeetupEventsFromApify();
-    console.log(`[meetup-pipeline] Got ${items.length} events`);
-
-    for (const item of items) {
-      const event = transformApifyMeetupItem(item);
-      const outcome = await processEvent(supabase, event, result);
-      if (outcome === "continue") continue;
+    const actor = getApifyActor();
+    if (actor === "meetup-scraper") {
+      console.log("[meetup-pipeline] Fetching Meetup events via Apify meetup-scraper (Gran Canaria)...");
+      const items = await fetchMeetupEventsFromMeetupScraper();
+      console.log(`[meetup-pipeline] Got ${items.length} events`);
+      for (const item of items) {
+        const event = transformMeetupScraperItem(item);
+        const outcome = await processEvent(supabase, event, result);
+        if (outcome === "continue") continue;
+      }
+    } else {
+      console.log("[meetup-pipeline] Fetching Meetup events via Apify Event Scraper Pro (Gran Canaria)...");
+      const items = await fetchMeetupEventsFromApify();
+      console.log(`[meetup-pipeline] Got ${items.length} events`);
+      for (const item of items) {
+        const event = transformApifyMeetupItem(item);
+        const outcome = await processEvent(supabase, event, result);
+        if (outcome === "continue") continue;
+      }
     }
   }
 
@@ -126,8 +144,29 @@ async function processEvent(
     result.skipped++;
     return "continue";
   }
-  console.log(`[meetup-pipeline] Upserting event: "${event.title}"`);
-  const status = await upsertEvent(supabase, event);
+  let eventToUpsert = event;
+  const translated = await translateEventToBilingual(event.title, event.description);
+  if (translated) {
+    eventToUpsert = {
+      ...eventToUpsert,
+      title_en: translated.title_en,
+      title_es: translated.title_es,
+      description_en: translated.description_en,
+      description_es: translated.description_es,
+      source_language: translated.source_language,
+    };
+    console.log(`[meetup-pipeline] Translated title/description for "${event.title}"`);
+  }
+  if (!eventToUpsert.image_url && eventToUpsert.source_url) {
+    const fetchedImage = await fetchImageUrlFromPage(eventToUpsert.source_url);
+    if (fetchedImage) {
+      eventToUpsert = { ...eventToUpsert, image_url: fetchedImage };
+      console.log(`[meetup-pipeline] Fetched image from page for "${eventToUpsert.title}"`);
+    }
+    await new Promise((r) => setTimeout(r, IMAGE_FETCH_DELAY_MS));
+  }
+  console.log(`[meetup-pipeline] Upserting event: "${eventToUpsert.title}"`);
+  const status = await upsertEvent(supabase, eventToUpsert);
   if (status === "error") {
     result.errors++;
   } else {
@@ -158,9 +197,10 @@ if (isMainModule) {
     process.exit(1);
   }
 
+  const apifyActor = hasOAuth ? null : getApifyActor();
   console.log(
     "[meetup-pipeline] Starting Meetup ingestion for Gran Canaria",
-    hasOAuth ? "(OAuth)" : "(Apify scraper)"
+    hasOAuth ? "(OAuth)" : apifyActor === "meetup-scraper" ? "(Apify meetup-scraper)" : "(Apify Event Scraper Pro)"
   );
 
   ingestFromMeetup()

@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   transformApifyMeetupItem,
+  transformMeetupScraperItem,
   fetchMeetupEventsFromApify,
+  fetchMeetupEventsFromMeetupScraper,
+  getApifyActor,
   type ApifyMeetupItem,
+  type MeetupScraperItem,
 } from "../meetup-apify";
 
 describe("transformApifyMeetupItem", () => {
@@ -137,6 +141,60 @@ describe("transformApifyMeetupItem", () => {
   });
 });
 
+describe("getApifyActor", () => {
+  it("returns event-scraper-pro when MEETUP_APIFY_ACTOR unset or invalid", () => {
+    vi.stubEnv("MEETUP_APIFY_ACTOR", undefined);
+    expect(getApifyActor()).toBe("event-scraper-pro");
+    vi.stubEnv("MEETUP_APIFY_ACTOR", "event-scraper-pro");
+    expect(getApifyActor()).toBe("event-scraper-pro");
+    vi.stubEnv("MEETUP_APIFY_ACTOR", "other");
+    expect(getApifyActor()).toBe("event-scraper-pro");
+  });
+
+  it("returns meetup-scraper when MEETUP_APIFY_ACTOR=meetup-scraper", () => {
+    vi.stubEnv("MEETUP_APIFY_ACTOR", "meetup-scraper");
+    expect(getApifyActor()).toBe("meetup-scraper");
+    vi.stubEnv("MEETUP_APIFY_ACTOR", "MEETUP-SCRAPER");
+    expect(getApifyActor()).toBe("meetup-scraper");
+  });
+});
+
+describe("transformMeetupScraperItem", () => {
+  it("transforms MeetupScraperItem to RawEvent with source meetup and image_url null", () => {
+    const item: MeetupScraperItem = {
+      eventId: "ms1",
+      eventName: "Tech Meetup",
+      eventUrl: "https://www.meetup.com/e/tech/",
+      eventDescription: "A tech meetup.",
+      date: "2026-03-10T19:00:00.000Z",
+      address: "Las Palmas",
+      organizedByGroup: "Tech Group",
+    };
+
+    const event = transformMeetupScraperItem(item);
+
+    expect(event.title).toBe("Tech Meetup");
+    expect(event.source).toBe("meetup");
+    expect(event.image_url).toBeNull();
+    expect(event.source_url).toBe("https://www.meetup.com/e/tech/");
+    expect(event.date_start).toBe("2026-03-10");
+    expect(event.time).toBeTruthy();
+    expect(event.location).toBe("Las Palmas");
+  });
+
+  it("uses Online when address missing", () => {
+    const item: MeetupScraperItem = {
+      eventName: "Online Event",
+      eventUrl: "https://meetup.com/e/online",
+      date: "2026-04-01T18:00:00Z",
+    };
+
+    const event = transformMeetupScraperItem(item);
+
+    expect(event.location).toBe("Online");
+  });
+});
+
 describe("fetchMeetupEventsFromApify", () => {
   const mockFetch = vi.fn();
   beforeEach(() => {
@@ -230,5 +288,46 @@ describe("fetchMeetupEventsFromApify", () => {
     });
 
     await expect(fetchMeetupEventsFromApify()).rejects.toThrow("Apify API error (500)");
+  });
+});
+
+describe("fetchMeetupEventsFromMeetupScraper", () => {
+  const mockFetch = vi.fn();
+  beforeEach(() => {
+    mockFetch.mockClear();
+    vi.stubGlobal("fetch", mockFetch);
+    vi.stubEnv("APIFY_API_TOKEN", "test-token");
+  });
+
+  it("throws when APIFY_API_TOKEN not set", async () => {
+    vi.stubEnv("APIFY_API_TOKEN", "");
+    await expect(fetchMeetupEventsFromMeetupScraper()).rejects.toThrow(
+      "APIFY_API_TOKEN is not set"
+    );
+  });
+
+  it("calls filip_cicvarek/meetup-scraper and returns items", async () => {
+    const items: MeetupScraperItem[] = [
+      {
+        eventId: "ms1",
+        eventName: "Meetup Event",
+        eventUrl: "https://www.meetup.com/e/1/",
+        date: "2026-03-01T19:00:00Z",
+      },
+    ];
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(items) });
+
+    const result = await fetchMeetupEventsFromMeetupScraper();
+
+    expect(result).toEqual(items);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, opts] = mockFetch.mock.calls[0];
+    expect(url).toContain("filip_cicvarek~meetup-scraper");
+    expect(url).toContain("run-sync-get-dataset-items");
+    const body = JSON.parse(opts?.body as string);
+    expect(body.city).toBeDefined();
+    expect(body.country).toBeDefined();
+    expect(body.maxResults).toBeDefined();
+    expect(body.searchKeyword).toBeDefined();
   });
 });

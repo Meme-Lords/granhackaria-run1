@@ -1,6 +1,11 @@
-import Anthropic from "@anthropic-ai/sdk";
-import OpenAI from "openai";
 import type { RawEvent } from "./types";
+import {
+  extractJsonText,
+  getAnthropic,
+  getOpenAI,
+  getProvider,
+  withRetryOn429,
+} from "./llm";
 
 const VALID_CATEGORIES = [
   "music",
@@ -63,69 +68,6 @@ Rules:
 - Handle Spanish and English text in the image.
 - Return ONLY valid JSON, no markdown fences, no explanation.`;
 
-type Provider = "openai" | "anthropic";
-
-const MAX_RETRIES_ON_RATE_LIMIT = 3;
-/** Wait 1 min 5 sec on 429 before resuming (OpenAI TPM reset is typically ~1 min). */
-const RATE_LIMIT_WAIT_MS = 65_000;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isRateLimitError(err: unknown): boolean {
-  if (err == null || typeof err !== "object") return false;
-  const o = err as { status?: number; code?: string };
-  return o.status === 429 || o.code === "rate_limit_exceeded";
-}
-
-async function withRetryOn429<T>(fn: () => Promise<T>): Promise<T> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= MAX_RETRIES_ON_RATE_LIMIT; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      lastError = err;
-      if (!isRateLimitError(err) || attempt === MAX_RETRIES_ON_RATE_LIMIT) throw err;
-      console.warn(
-        `[parser] Rate limited (429), pausing 1m 5s before resuming (retry ${attempt + 1}/${MAX_RETRIES_ON_RATE_LIMIT})`
-      );
-      await sleep(RATE_LIMIT_WAIT_MS);
-    }
-  }
-  throw lastError;
-}
-
-let openaiClient: OpenAI | null = null;
-let anthropicClient: Anthropic | null = null;
-
-function getProvider(): Provider | null {
-  if (process.env.OPENAI_API_KEY) return "openai";
-  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
-  return null;
-}
-
-function getOpenAI(): OpenAI | null {
-  if (!openaiClient) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return null;
-    openaiClient = new OpenAI({ apiKey });
-  }
-  return openaiClient;
-}
-
-function getAnthropic(): Anthropic | null {
-  if (!anthropicClient) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      console.error("[parser] ANTHROPIC_API_KEY is not set");
-      return null;
-    }
-    anthropicClient = new Anthropic({ apiKey });
-  }
-  return anthropicClient;
-}
-
 /** Fetch image from URL and return base64 + media type for Anthropic. */
 async function fetchImageAsBase64(
   url: string
@@ -141,13 +83,6 @@ async function fetchImageAsBase64(
   } catch {
     return null;
   }
-}
-
-/** Strip markdown code fences if present (e.g. ```json ... ```). */
-function extractJsonText(raw: string): string {
-  const trimmed = raw.trim();
-  const fence = trimmed.startsWith("```") ? trimmed.slice(3).replace(/^json\s*\n?/i, "") : trimmed;
-  return fence.endsWith("```") ? fence.slice(0, -3).trim() : fence;
 }
 
 function parseResponseToEvent(
@@ -226,15 +161,17 @@ export async function parseEventFromText(
     if (provider === "openai") {
       const openai = getOpenAI();
       if (!openai) return null;
-      const completion = await withRetryOn429(() =>
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          max_tokens: 512,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: userContent },
-          ],
-        })
+      const completion = await withRetryOn429(
+        () =>
+          openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            max_tokens: 512,
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: userContent },
+            ],
+          }),
+        "parser"
       );
       const content = completion.choices[0]?.message?.content;
       if (!content) return null;
@@ -294,24 +231,26 @@ export async function parseEventFromImage(
         return null;
       }
       const dataUrl = `data:${imageData.mediaType};base64,${imageData.data}`;
-      const completion = await withRetryOn429(() =>
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          max_tokens: 512,
-          messages: [
-            { role: "system", content: VISION_SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
-                },
-                { type: "image_url", image_url: { url: dataUrl } },
-              ],
-            },
-          ],
-        })
+      const completion = await withRetryOn429(
+        () =>
+          openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            max_tokens: 512,
+            messages: [
+              { role: "system", content: VISION_SYSTEM_PROMPT },
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
+                  },
+                  { type: "image_url", image_url: { url: dataUrl } },
+                ],
+              },
+            ],
+          }),
+        "parser"
       );
       const content = completion.choices[0]?.message?.content;
       if (!content) return null;
@@ -324,31 +263,33 @@ export async function parseEventFromImage(
         console.warn("[parser] Failed to fetch image for vision:", imageUrl.slice(0, 50));
         return null;
       }
-      const message = await withRetryOn429(() =>
-        anthropic.messages.create({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 512,
-          system: VISION_SYSTEM_PROMPT,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image",
-                  source: {
-                    type: "base64",
-                    media_type: imageData.mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
-                    data: imageData.data,
+      const message = await withRetryOn429(
+        () =>
+          anthropic.messages.create({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 512,
+            system: VISION_SYSTEM_PROMPT,
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "image",
+                    source: {
+                      type: "base64",
+                      media_type: imageData.mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
+                      data: imageData.data,
+                    },
                   },
-                },
-                {
-                  type: "text",
-                  text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
-                },
-              ],
-            },
-          ],
-        })
+                  {
+                    type: "text",
+                    text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
+                  },
+                ],
+              },
+            ],
+          }),
+        "parser"
       );
       const first = message.content[0];
       if (first.type !== "text") return null;
