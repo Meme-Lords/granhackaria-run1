@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+/* Map Tailwind color utilities to CSS variables (so bg-primary, hover:bg-primary/90, etc. work) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+}
+
 :root {
   /* Colors - Light theme */
   --background: #F2F3F0;
@@ -15,6 +37,11 @@
   --border: #CBCCC9;
   --input: #CBCCC9;
   --ring: #666666;
+  --accent: #E7E8E5;
+  --accent-foreground: #111111;
+  --destructive: #8C1C00;
+  --popover: #FFFFFF;
+  --popover-foreground: #111111;
 
   /* Semantic colors */
   --color-warning: #E9E3D8;
@@ -45,6 +72,11 @@
   --border: #2E2E2E;
   --input: #2E2E2E;
   --ring: #666666;
+  --accent: #2E2E2E;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF5C33;
+  --popover: #1A1A1A;
+  --popover-foreground: #FFFFFF;
 
   --color-warning: #291C0F;
   --color-warning-foreground: #FF8400;
@@ -68,4 +100,26 @@
   .font-secondary {
     font-family: "Geist", sans-serif;
   }
+}
+
+/* Cookie settings (and other modals): thin scrollbar, always visible thumb */
+.scrollbar-thin-visible {
+  overflow-y: auto;
+  /* Firefox: thin scrollbar, thumb then track */
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--muted);
+}
+.scrollbar-thin-visible::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin-visible::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 999px;
+}
+.scrollbar-thin-visible::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 999px;
+}
+.scrollbar-thin-visible::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
 }

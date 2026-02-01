@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
-import { StatsigRootProvider } from "@/components";
+import { CookieConsentWrapper, StatsigRootProvider } from "@/components";
 import { LocaleMetadata } from "@/components/LocaleMetadata";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
@@ -42,7 +42,9 @@ export default function RootLayout({
         <StatsigRootProvider>
           <I18nProvider>
             <LocaleMetadata />
-            <ThemeProvider>{children}</ThemeProvider>
+            <ThemeProvider>
+              <CookieConsentWrapper>{children}</CookieConsentWrapper>
+            </ThemeProvider>
           </I18nProvider>
         </StatsigRootProvider>
       </body>

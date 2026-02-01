@@ -1,3 +1,4 @@
+export { CookieConsentWrapper } from "./CookieConsentWrapper";
 export { Header } from "./Header";
 export { Hero } from "./Hero";
 export { CategoryFilterBar } from "./CategoryFilterBar";

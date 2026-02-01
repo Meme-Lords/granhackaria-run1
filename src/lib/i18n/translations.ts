@@ -62,6 +62,29 @@ export const translations = {
       contact: "Contact",
     },
 
+    // Cookie banner
+    cookieBanner: {
+      title: "Cookie Preferences",
+      description:
+        "We use cookies to enhance your experience and for analytics. Essential cookies are always on. You can accept all, reject non-essential, or customize.",
+      learnMore: "Learn more",
+      acceptAll: "Accept All",
+      rejectAll: "Reject All",
+      customize: "Customize",
+    },
+
+    // Cookie settings modal
+    cookieSettings: {
+      title: "Cookie Settings",
+      description: "Manage your cookie preferences below.",
+      save: "Save Preferences",
+      rejectAll: "Reject All",
+      acceptAll: "Accept All",
+      required: "Required",
+      privacyPolicy: "Privacy Policy",
+      privacyPolicyLinkPrefix: "Read our",
+    },
+
     // About page
     about: {
       heroTitle: "Helping You Feel at Home in Gran Canaria",
@@ -359,6 +382,29 @@ export const translations = {
       privacy: "Privacidad",
       terms: "Términos",
       contact: "Contacto",
+    },
+
+    // Cookie banner
+    cookieBanner: {
+      title: "Preferencias de cookies",
+      description:
+        "Usamos cookies para mejorar tu experiencia y analíticas. Las cookies esenciales están siempre activas. Puedes aceptar todas, rechazar las no esenciales o personalizar.",
+      learnMore: "Más información",
+      acceptAll: "Aceptar todas",
+      rejectAll: "Rechazar todas",
+      customize: "Personalizar",
+    },
+
+    // Cookie settings modal
+    cookieSettings: {
+      title: "Configuración de cookies",
+      description: "Gestiona tus preferencias de cookies a continuación.",
+      save: "Guardar preferencias",
+      rejectAll: "Rechazar todas",
+      acceptAll: "Aceptar todas",
+      required: "Obligatorio",
+      privacyPolicy: "Política de Privacidad",
+      privacyPolicyLinkPrefix: "Lee nuestra",
     },
 
     // About page

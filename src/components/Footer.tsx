@@ -1,5 +1,6 @@
 "use client";
 
+import { CookieTrigger } from "@/components/cookie-consent";
 import { useI18n } from "@/lib/i18n";
 
 export function Footer() {
@@ -11,6 +12,7 @@ export function Footer() {
         {t.footer.copyright}
       </span>
       <nav className="flex items-center gap-4 sm:gap-6">
+        <CookieTrigger className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors" />
         <a
           href="/privacy"
           className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
