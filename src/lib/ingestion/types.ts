@@ -9,7 +9,12 @@ export interface RawInstagramPost {
 
 export interface RawEvent {
   title: string;
+  title_en: string;
+  title_es: string;
   description: string | null;
+  description_en: string | null;
+  description_es: string | null;
+  source_language: "en" | "es" | "unknown";
   date_start: string; // ISO date string (YYYY-MM-DD)
   time: string | null; // HH:MM format
   location: string;

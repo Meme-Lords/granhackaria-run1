@@ -148,3 +148,35 @@
 - Test coverage >90% for new code
 
 **Requirements:** Extends REQ-01 (additional event source)
+
+---
+
+## Phase 08: Bilingual Event Content
+
+**Goal:** Enable fully bilingual event titles and descriptions that switch with the language toggle.
+
+**Deliverables:**
+- Database schema with bilingual columns (title_en/es, description_en/es)
+- Updated AI parser to extract and translate in one call
+- Bilingual storage across all event sources (Instagram, Slack, Meetup)
+- Locale-aware query layer (pass locale, select language)
+- Server-side locale detection via cookies
+- Migration script for existing events (~100 events)
+- Dynamic document title and HTML lang attribute
+- Locale-aware date formatting ("Mon, Jan 6" vs "lun, 6 ene")
+- Multi-level fallback for missing translations
+- Comprehensive test coverage (>90%)
+
+**Success Criteria:**
+- Event titles display in English when locale="en"
+- Event titles display in Spanish when locale="es"
+- Event descriptions switch with language
+- Date formatting uses correct locale
+- All three event sources store bilingual content
+- Language switching is instant (no runtime delay)
+- Existing events migrated successfully
+- Document title and `<html lang>` update with locale
+- Fallback logic prevents missing content
+- AI translation cost increase <$5/year
+
+**Requirements:** Extends REQ-NF-02 (bilingual support beyond UI)

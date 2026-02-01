@@ -66,3 +66,31 @@ tasks:
     depends_on:
       - "Phase 05: Scheduling"
     completed: true
+  - name: "Phase 08: Bilingual Event Content"
+    title: "Phase 08: Bilingual Event Content"
+    description: |
+      Execute Phase 08 plan: Add fully bilingual event titles and descriptions.
+
+      This phase makes event content (titles, descriptions, dates) display in the
+      user's selected language, matching the existing bilingual UI quality.
+
+      Follow the plan at .planning/phases/08-bilingual-events/08-PLAN.md
+
+      Complete all 10 sub-plans:
+      01. Database schema migration (add bilingual columns)
+      02. Update parser for bilingual extraction (AI translates in one call)
+      03. Update event types and interfaces
+      04. Update ingestion pipelines (Instagram, Slack)
+      05. Update query layer (locale-aware fetching)
+      06. Update page components (server-side locale)
+      07. Migrate existing events (~100 events)
+      08. Update metadata and HTML lang
+      09. Testing and documentation
+      10. Cleanup (optional, deferred)
+
+      Create atomic commits per task and generate SUMMARY.md when done.
+    plan_file: .planning/phases/08-bilingual-events/08-PLAN.md
+    phase: 08-bilingual-events
+    depends_on:
+      - "Phase 06: Polish & Deploy"
+    completed: false

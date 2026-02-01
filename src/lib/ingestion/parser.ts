@@ -13,11 +13,14 @@ const VALID_CATEGORIES = [
   "market",
 ] as const;
 
-const SYSTEM_PROMPT = `You are an event data extractor for Gran Canaria, Spain. Given an Instagram caption, extract structured event information.
+const SYSTEM_PROMPT = `You are an event data extractor for Gran Canaria, Spain. Given an Instagram caption, extract structured event information and provide BILINGUAL (English + Spanish) titles and descriptions.
 
 Return a JSON object with these fields:
-- title: string (event name, concise)
-- description: string | null (brief description if available)
+- title_en: string (event name in English, concise)
+- title_es: string (event name in Spanish, concise)
+- description_en: string | null (brief description in English if available)
+- description_es: string | null (brief description in Spanish if available)
+- source_language: "en" | "es" | "unknown" (detected language of the original text)
 - date_start: string (ISO date YYYY-MM-DD)
 - time: string | null (HH:MM in 24h format, or null if not mentioned)
 - location: string (venue or place name)
@@ -27,6 +30,8 @@ Return a JSON object with these fields:
 If the text is NOT about an event (e.g., it's a personal post, meme, promotional content without a specific event), return exactly: {"not_event": true}
 
 Rules:
+- Detect the source language. If Spanish, keep the original as _es fields and translate to _en. If English, keep as _en and translate to _es.
+- Translations must be natural and culturally appropriate, not literal word-for-word.
 - If no specific date is mentioned, try to infer from context (e.g., "this Saturday", "mañana"). Use today's date as reference.
 - If location is unclear, use "Gran Canaria" as default.
 - Pick the most fitting category. When unsure, use "festival" for general gatherings.
@@ -35,9 +40,12 @@ Rules:
 
 const VISION_SYSTEM_PROMPT = `You are an event data extractor for Gran Canaria, Spain. Look at the image (e.g. event poster, flyer, ticket, photo of a venue or announcement).
 
-If the image shows or advertises a specific event, extract structured event information and return a JSON object with these fields:
-- title: string (event name, concise)
-- description: string | null (brief description if visible)
+If the image shows or advertises a specific event, extract structured event information and provide BILINGUAL (English + Spanish) titles and descriptions. Return a JSON object with these fields:
+- title_en: string (event name in English, concise)
+- title_es: string (event name in Spanish, concise)
+- description_en: string | null (brief description in English if visible)
+- description_es: string | null (brief description in Spanish if visible)
+- source_language: "en" | "es" | "unknown" (detected language of text in the image)
 - date_start: string (ISO date YYYY-MM-DD)
 - time: string | null (HH:MM in 24h format, or null if not visible)
 - location: string (venue or place name)
@@ -47,6 +55,8 @@ If the image shows or advertises a specific event, extract structured event info
 If the image does NOT show a specific event (e.g. personal photo, meme, generic promo, no date/venue), return exactly: {"not_event": true}
 
 Rules:
+- Detect the source language. If Spanish, keep the original as _es fields and translate to _en. If English, keep as _en and translate to _es.
+- Translations must be natural and culturally appropriate, not literal word-for-word.
 - Infer date/time from text in the image when possible. Use today's date as reference for relative dates.
 - If location is unclear, use "Gran Canaria" as default.
 - Pick the most fitting category. When unsure, use "festival".
@@ -152,17 +162,34 @@ function parseResponseToEvent(
     ? (parsed.category as (typeof VALID_CATEGORIES)[number])
     : "festival";
 
-  const desc = parsed.description;
   const time = parsed.time;
   const loc = parsed.location;
   const ticketPrice = parsed.ticket_price;
-
-  const title = parsed.title;
   const dateStart = parsed.date_start;
 
+  // Bilingual fields
+  const titleEn = typeof parsed.title_en === "string" ? parsed.title_en : "";
+  const titleEs = typeof parsed.title_es === "string" ? parsed.title_es : "";
+  const descEn = typeof parsed.description_en === "string" ? parsed.description_en : null;
+  const descEs = typeof parsed.description_es === "string" ? parsed.description_es : null;
+
+  const validLangs = ["en", "es", "unknown"] as const;
+  const srcLang = validLangs.includes(parsed.source_language as typeof validLangs[number])
+    ? (parsed.source_language as "en" | "es" | "unknown")
+    : "unknown";
+
+  // Fallback title/description: prefer source language, then en, then es
+  const title = srcLang === "es" ? (titleEs || titleEn) : (titleEn || titleEs);
+  const description = srcLang === "es" ? (descEs ?? descEn) : (descEn ?? descEs);
+
   return {
-    title: typeof title === "string" ? title : "",
-    description: desc != null && typeof desc === "string" ? desc : null,
+    title,
+    title_en: titleEn,
+    title_es: titleEs,
+    description,
+    description_en: descEn,
+    description_es: descEs,
+    source_language: srcLang,
     date_start: typeof dateStart === "string" ? dateStart : "",
     time: time != null && typeof time === "string" ? time : null,
     location: typeof loc === "string" ? loc : "Gran Canaria",
