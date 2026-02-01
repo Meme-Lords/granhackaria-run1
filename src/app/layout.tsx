@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import { StatsigRootProvider } from "@/components";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 
@@ -37,9 +38,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeScript }}
           suppressHydrationWarning
         />
-        <I18nProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </I18nProvider>
+        <StatsigRootProvider>
+          <I18nProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </I18nProvider>
+        </StatsigRootProvider>
       </body>
     </html>
   );

@@ -1,5 +1,8 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
+import { getInstagramAccountsFromStatsig } from "@/lib/statsig/server";
 import { fetchAccountPosts } from "./instagram";
 import { parseEventFromText, parseEventFromImage } from "./parser";
 import type { RawEvent } from "./types";
@@ -155,62 +158,72 @@ export async function ingestFromInstagram(
 const isMainModule = process.argv[1]?.includes("instagram-pipeline") ?? false;
 
 if (isMainModule) {
-  config({ path: ".env" });
-  config({ path: ".env.local" });
+  // Load .env from project root (where package.json is), not cwd - so it works from any run folder
+  const scriptDir =
+    typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+  const projectRoot = path.resolve(scriptDir, "..", "..", "..");
+  const envPath = path.join(projectRoot, ".env");
+  const envLocalPath = path.join(projectRoot, ".env.local");
+  config({ path: envPath });
+  config({ path: envLocalPath });
 
-  const accountsEnv = process.env.INSTAGRAM_ACCOUNTS;
-  if (!accountsEnv) {
-    console.error("[pipeline] INSTAGRAM_ACCOUNTS env var is required (comma-separated usernames)");
-    process.exit(1);
-  }
+  async function run(): Promise<void> {
+    const accounts = await getInstagramAccountsFromStatsig();
+    if (accounts.length === 0) {
+      console.error(
+        "[pipeline] No Instagram accounts. Set Statsig instagram_accounts config or INSTAGRAM_ACCOUNTS env (comma-separated usernames)."
+      );
+      process.exit(1);
+    }
 
-  const accounts = accountsEnv.split(",").map((a) => a.trim()).filter(Boolean);
-  const hasRapid = !!process.env.RAPIDAPI_KEY;
-  const hasOpenAI = !!process.env.OPENAI_API_KEY;
-  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
-  const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const hasSupabaseKey =
-    !!process.env.SUPABASE_SECRET_KEY || !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const hasRapid = !!process.env.RAPIDAPI_KEY;
+    const hasOpenAI = !!process.env.OPENAI_API_KEY;
+    const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+    const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasSupabaseKey =
+      !!process.env.SUPABASE_SECRET_KEY || !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  console.log("[pipeline] Preflight:");
-  console.log(`  INSTAGRAM_ACCOUNTS: ${accounts.length} account(s) (${accounts.join(", ")})`);
-  console.log(`  RAPIDAPI_KEY: ${hasRapid ? "set" : "MISSING"}`);
-  console.log(
-    `  LLM: ${hasOpenAI ? "OPENAI_API_KEY (text + vision)" : hasAnthropic ? "ANTHROPIC_API_KEY (text + vision)" : "MISSING (set OPENAI_API_KEY or ANTHROPIC_API_KEY)"}`
-  );
-  console.log(`  Supabase URL: ${hasSupabaseUrl ? "set" : "MISSING"}`);
-  console.log(
-    `  Supabase key: ${hasSupabaseKey ? "set (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY)" : "MISSING"}`
-  );
-
-  if (!hasRapid) {
-    console.error("[pipeline] Aborting: RAPIDAPI_KEY is required to fetch Instagram posts.");
-    process.exit(1);
-  }
-  if (!hasOpenAI && !hasAnthropic) {
-    console.error(
-      "[pipeline] Aborting: set OPENAI_API_KEY or ANTHROPIC_API_KEY for caption/image parsing."
+    console.log("[pipeline] Preflight:");
+    console.log(`  Instagram accounts: ${accounts.length} (${accounts.join(", ")})`);
+    console.log(`  RAPIDAPI_KEY: ${hasRapid ? "set" : "MISSING"}`);
+    console.log(
+      `  LLM: ${hasOpenAI ? "OPENAI_API_KEY (text + vision)" : hasAnthropic ? "ANTHROPIC_API_KEY (text + vision)" : "MISSING (set OPENAI_API_KEY or ANTHROPIC_API_KEY)"}`
     );
-    process.exit(1);
-  }
-  if (!hasSupabaseUrl || !hasSupabaseKey) {
-    console.error(
-      "[pipeline] Aborting: NEXT_PUBLIC_SUPABASE_URL and Supabase service key are required."
+    console.log(`  Supabase URL: ${hasSupabaseUrl ? "set" : "MISSING"}`);
+    console.log(
+      `  Supabase key: ${hasSupabaseKey ? "set (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY)" : "MISSING"}`
     );
-    process.exit(1);
-  }
 
-  console.log("[pipeline] Starting ingestion…");
+    if (!hasRapid) {
+      console.error("[pipeline] Aborting: RAPIDAPI_KEY is required to fetch Instagram posts.");
+      process.exit(1);
+    }
+    if (!hasOpenAI && !hasAnthropic) {
+      console.error(
+        "[pipeline] Aborting: set OPENAI_API_KEY or ANTHROPIC_API_KEY for caption/image parsing."
+      );
+      process.exit(1);
+    }
+    if (!hasSupabaseUrl || !hasSupabaseKey) {
+      console.error(
+        "[pipeline] Aborting: NEXT_PUBLIC_SUPABASE_URL and Supabase service key are required."
+      );
+      process.exit(1);
+    }
 
-  ingestFromInstagram(accounts)
-    .then((result) => {
+    console.log("[pipeline] Starting ingestion…");
+
+    try {
+      const result = await ingestFromInstagram(accounts);
       console.log("\n[pipeline] Done!");
       console.log(`  Inserted: ${result.inserted}`);
       console.log(`  Skipped:  ${result.skipped}`);
       console.log(`  Errors:   ${result.errors}`);
-    })
-    .catch((error) => {
+    } catch (error) {
       console.error("[pipeline] Fatal error:", error);
       process.exit(1);
-    });
+    }
+  }
+
+  run();
 }

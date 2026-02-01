@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getInstagramAccountsFromStatsig } from "@/lib/statsig/server";
 import { ingestFromInstagram } from "@/lib/ingestion/instagram-pipeline";
 import { ingestFromSlack } from "@/lib/ingestion/slack-pipeline";
 
@@ -24,19 +25,15 @@ export async function GET(request: Request): Promise<NextResponse> {
     error: "not run",
   };
 
-  // Run Instagram ingestion
+  // Run Instagram ingestion (accounts from Statsig instagram_accounts config or INSTAGRAM_ACCOUNTS env)
   try {
-    const accountsEnv = process.env.INSTAGRAM_ACCOUNTS;
-    if (accountsEnv) {
-      const accounts = accountsEnv
-        .split(",")
-        .map((a) => a.trim())
-        .filter(Boolean);
+    const accounts = await getInstagramAccountsFromStatsig();
+    if (accounts.length > 0) {
       instagram = await ingestFromInstagram(accounts);
       console.log("[cron/ingest] Instagram result:", instagram);
     } else {
-      instagram = { error: "INSTAGRAM_ACCOUNTS not configured" };
-      console.log("[cron/ingest] Skipping Instagram: INSTAGRAM_ACCOUNTS not set");
+      instagram = { error: "Instagram accounts not configured (Statsig instagram_accounts or INSTAGRAM_ACCOUNTS)" };
+      console.log("[cron/ingest] Skipping Instagram: no accounts from Statsig or env");
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

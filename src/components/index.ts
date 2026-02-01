@@ -8,3 +8,4 @@ export { EventSection } from "./EventSection";
 export { Footer } from "./Footer";
 export { LanguageToggle } from "./LanguageToggle";
 export { ThemeToggle } from "./ThemeToggle";
+export { StatsigRootProvider } from "./statsig/statsig-provider";
