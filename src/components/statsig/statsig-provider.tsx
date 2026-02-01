@@ -52,7 +52,7 @@ export function StatsigRootProvider({ children }: StatsigRootProviderProps) {
   // Hooks must run unconditionally (before any early returns).
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true);
+    queueMicrotask(() => setMounted(true));
   }, []);
 
   // Hard disable switch via env var. When set to "true", we avoid
