@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 function isViewableSourceUrl(url: string | null | undefined): boolean {
@@ -87,11 +87,19 @@ export function EventImageModal({
           <div className="relative w-full min-h-[200px] min-w-[200px] bg-[var(--muted)] flex justify-center items-center">
             {!imageLoaded && (
               <div
-                className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--muted-foreground)]"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--muted)]"
                 aria-hidden
               >
-                <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin" />
-                <span className="font-secondary text-sm">{t.event.loading}</span>
+                <div className="relative h-12 w-12 sm:h-14 sm:w-14">
+                  <div className="absolute inset-0 rounded-full border-4 border-[var(--border)]" />
+                  <div
+                    className="absolute inset-0 rounded-full border-4 border-transparent border-t-orange-500 animate-spin"
+                    aria-hidden
+                  />
+                </div>
+                <span className="font-secondary text-sm text-[var(--muted-foreground)] sr-only">
+                  {t.event.loading}
+                </span>
               </div>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element -- full-width modal image; aspect unknown */}

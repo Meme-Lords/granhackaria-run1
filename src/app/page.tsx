@@ -3,6 +3,7 @@ import {
   Hero,
   CategoryFilterBar,
   EventSection,
+  GoToTopButton,
   Footer,
 } from "@/components";
 import {
@@ -41,6 +42,7 @@ export default async function EventListingsPage({
         <EventSection titleKey="today" events={todayEvents} />
         <EventSection titleKey="tomorrow" events={tomorrowEvents} />
         <EventSection titleKey="thisWeek" events={weekEvents} />
+        <GoToTopButton />
       </main>
       <Footer />
     </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
@@ -15,11 +16,40 @@ const navLinkInactive = "text-[var(--muted-foreground)] hover:text-[var(--foregr
 export function Header() {
   const { t } = useI18n();
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
   const isEvents = pathname === "/";
   const isAbout = pathname === "/about" || pathname.startsWith("/about/");
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [menuOpen]);
+
+  const navLinks = (
+    <>
+      <Link
+        href="/"
+        className={`${navLinkBase} ${isEvents ? navLinkActive : navLinkInactive}`}
+        onClick={() => setMenuOpen(false)}
+      >
+        {t.nav.events}
+      </Link>
+      <Link
+        href="/about"
+        className={`${navLinkBase} ${isAbout ? navLinkActive : navLinkInactive}`}
+        onClick={() => setMenuOpen(false)}
+      >
+        {t.nav.about}
+      </Link>
+    </>
+  );
+
   return (
-    <header className="flex items-center justify-between h-[60px] sm:h-[70px] md:h-[80px] px-4 sm:px-6 md:px-12 w-full border-b border-[var(--border)]">
+    <header className="relative flex items-center justify-between h-[60px] sm:h-[70px] md:h-[80px] px-4 sm:px-6 md:px-12 w-full border-b border-[var(--border)]">
       <Link href="/" className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity">
         <CalendarDays className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[var(--primary)]" />
         <span className="font-primary text-lg sm:text-xl md:text-2xl font-semibold text-[var(--foreground)]">
@@ -28,22 +58,55 @@ export function Header() {
       </Link>
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
         <ThemeToggle />
-        <nav className="flex items-center gap-3 sm:gap-4 md:gap-6">
-          <Link
-            href="/"
-            className={`${navLinkBase} ${isEvents ? navLinkActive : navLinkInactive}`}
-          >
-            {t.nav.events}
-          </Link>
-          <Link
-            href="/about"
-            className={`${navLinkBase} ${isAbout ? navLinkActive : navLinkInactive}`}
-          >
-            {t.nav.about}
-          </Link>
+        {/* Desktop nav: visible from md up */}
+        <nav className="hidden md:flex items-center gap-3 sm:gap-4 md:gap-6">
+          {navLinks}
         </nav>
         <LanguageToggle />
+        {/* Mobile hamburger: visible below md, right of language switcher */}
+        <button
+          type="button"
+          className="md:hidden p-2 -m-2 ml-1 sm:ml-2 rounded-lg text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+          onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label={menuOpen ? t.nav.closeMenu : t.nav.openMenu}
+          aria-expanded={menuOpen}
+        >
+          {menuOpen ? (
+            <X className="w-6 h-6" aria-hidden />
+          ) : (
+            <Menu className="w-6 h-6" aria-hidden />
+          )}
+        </button>
       </div>
+      {/* Mobile menu panel */}
+      {menuOpen && (
+        <>
+          <div
+            className="fixed top-[60px] sm:top-[70px] left-0 right-0 bottom-0 z-40 bg-black/30 backdrop-blur-[2px] md:hidden"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden
+          />
+          <nav
+            className="fixed top-[60px] sm:top-[70px] right-0 z-50 w-full max-w-[280px] sm:max-w-[320px] md:hidden flex flex-col gap-1 p-4 bg-[var(--background)] border-b border-l border-[var(--border)] rounded-bl-2xl shadow-lg transition-transform duration-200 ease-out"
+            aria-label={t.nav.menu}
+          >
+            <Link
+              href="/"
+              className={`${navLinkBase} px-4 py-3 rounded-xl ${isEvents ? navLinkActive : navLinkInactive}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t.nav.events}
+            </Link>
+            <Link
+              href="/about"
+              className={`${navLinkBase} px-4 py-3 rounded-xl ${isAbout ? navLinkActive : navLinkInactive}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t.nav.about}
+            </Link>
+          </nav>
+        </>
+      )}
     </header>
   );
 }

@@ -6,6 +6,9 @@ export const translations = {
     nav: {
       events: "Events",
       about: "About",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
+      menu: "Navigation menu",
     },
 
     // Hero
@@ -27,6 +30,10 @@ export const translations = {
     filter: {
       all: "All",
       ariaLabel: "Filter events by category",
+    },
+
+    feed: {
+      goToTop: "Go to top",
     },
 
     event: {
@@ -298,6 +305,9 @@ export const translations = {
     nav: {
       events: "Eventos",
       about: "Nosotros",
+      openMenu: "Abrir menú",
+      closeMenu: "Cerrar menú",
+      menu: "Menú de navegación",
     },
 
     // Hero
@@ -319,6 +329,10 @@ export const translations = {
     filter: {
       all: "Todos",
       ariaLabel: "Filtrar eventos por categoría",
+    },
+
+    feed: {
+      goToTop: "Ir arriba",
     },
 
     event: {

@@ -30,6 +30,7 @@ export function EventCard({
   sourceUrl = null,
 }: Readonly<EventCardProps>) {
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const TimeIcon = showClock ? Clock : Calendar;
 
@@ -53,13 +54,33 @@ export function EventCard({
             <ImageOff className="w-10 h-10 sm:w-12 sm:h-12" />
           </div>
         ) : (
-          <Image
-            src={imageUrl}
-            alt={imageAlt || title}
-            fill
-            className="object-cover"
-            onError={() => setImageError(true)}
-          />
+          <>
+            {imageLoading ? (
+              <div
+                className="absolute inset-0 flex items-center justify-center z-10 bg-[var(--muted)]"
+                aria-hidden
+              >
+                <div className="relative h-10 w-10 sm:h-12 sm:w-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-[var(--border)]" />
+                  <div
+                    className="absolute inset-0 rounded-full border-4 border-transparent border-t-orange-500 animate-spin"
+                    aria-hidden
+                  />
+                </div>
+              </div>
+            ) : null}
+            <Image
+              src={imageUrl}
+              alt={imageAlt || title}
+              fill
+              className="object-cover"
+              onLoad={() => setImageLoading(false)}
+              onError={() => {
+                setImageError(true);
+                setImageLoading(false);
+              }}
+            />
+          </>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 sm:gap-3 p-3 sm:p-4 min-h-0">

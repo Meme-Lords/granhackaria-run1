@@ -7,6 +7,8 @@ export { EventCard } from "./EventCard";
 export type { EventCardProps } from "./EventCard";
 export { EventSection } from "./EventSection";
 export { Footer } from "./Footer";
+export { GoToTopButton } from "./GoToTopButton";
 export { LanguageToggle } from "./LanguageToggle";
 export { ThemeToggle } from "./ThemeToggle";
+export { LoadingScreen } from "./LoadingScreen";
 export { StatsigRootProvider } from "./statsig/statsig-provider";
