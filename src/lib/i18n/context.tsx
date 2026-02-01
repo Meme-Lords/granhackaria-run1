@@ -34,6 +34,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (stored && (stored === "en" || stored === "es")) {
       setLocaleState(stored);
+      document.cookie = `locale=${stored}; path=/; max-age=31536000; SameSite=Lax`;
     }
     setMounted(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -42,6 +43,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem(STORAGE_KEY, newLocale);
+    document.cookie = `locale=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
   };
 
   const t = translations[locale];

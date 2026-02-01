@@ -10,6 +10,7 @@ import {
   getTomorrowEvents,
   getThisWeekEvents,
 } from "@/lib/queries/events";
+import { getLocaleFromCookies } from "@/lib/i18n/server";
 
 interface EventListingsPageProps {
   readonly searchParams: Promise<{
@@ -23,11 +24,12 @@ export default async function EventListingsPage({
   const params = await searchParams;
   const category =
     typeof params.category === "string" ? params.category : undefined;
+  const locale = await getLocaleFromCookies();
 
   const [todayEvents, tomorrowEvents, weekEvents] = await Promise.all([
-    getTodayEvents(category),
-    getTomorrowEvents(category),
-    getThisWeekEvents(category),
+    getTodayEvents(locale, category),
+    getTomorrowEvents(locale, category),
+    getThisWeekEvents(locale, category),
   ]);
 
   return (
