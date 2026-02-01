@@ -22,8 +22,8 @@ export function EventSection({ titleKey, events }: EventSectionProps) {
   return (
     <section className="flex flex-col gap-4 sm:gap-6 w-full">
       <div className="flex items-center gap-2 sm:gap-3 w-full">
-        <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--primary)]" />
-        <h2 className="font-primary text-xl sm:text-2xl font-semibold text-[var(--foreground)]">
+        <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--primary)]" />
+        <h2 className="font-primary text-2xl sm:text-3xl font-semibold text-[var(--foreground)]">
           {t.sections[titleKey]}
         </h2>
       </div>
