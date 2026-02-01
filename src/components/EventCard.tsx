@@ -14,6 +14,7 @@ export interface EventCardProps {
   title: string;
   description?: string | null;
   location: string;
+  ticket_price?: string | null;
   showClock?: boolean;
   sourceUrl?: string | null;
 }
@@ -26,6 +27,7 @@ export function EventCard({
   title,
   description,
   location,
+  ticket_price = null,
   showClock = false,
   sourceUrl = null,
 }: Readonly<EventCardProps>) {
@@ -86,11 +88,18 @@ export function EventCard({
       <div className="flex flex-1 flex-col gap-2 sm:gap-3 p-3 sm:p-4 min-h-0">
         <div className="flex items-center justify-between w-full">
           <CategoryLabel category={category} />
-          <div className="flex items-center gap-1.5">
-            <TimeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
-            <span className="font-secondary text-xs sm:text-[13px] font-medium text-[var(--muted-foreground)]">
-              {time}
-            </span>
+          <div className="flex flex-col items-end gap-0.5 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <TimeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
+              <span className="font-secondary text-xs sm:text-[13px] font-medium text-[var(--muted-foreground)]">
+                {time}
+              </span>
+            </div>
+            {ticket_price != null && ticket_price !== "" ? (
+              <span className="font-secondary text-xs sm:text-[13px] font-medium text-[var(--muted-foreground)]">
+                {ticket_price}
+              </span>
+            ) : null}
           </div>
         </div>
         <h3 className="font-primary text-base font-semibold text-[var(--foreground)] mb-2 sm:mb-3">

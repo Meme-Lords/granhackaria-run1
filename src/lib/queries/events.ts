@@ -50,6 +50,7 @@ function toEventCardProps(row: EventRow, showClock: boolean, locale: Locale): Ev
     title,
     description,
     location: row.location,
+    ticket_price: row.ticket_price,
     showClock,
     sourceUrl: row.source_url,
   };
