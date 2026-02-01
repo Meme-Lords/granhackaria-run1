@@ -1,10 +1,16 @@
 import { createSupabaseServer } from "@/lib/supabase/server";
 import type { EventCardProps, CategoryVariant } from "@/components";
+import type { Locale } from "@/lib/i18n/translations";
 
 interface EventRow {
   id: string;
   title: string;
+  title_en: string | null;
+  title_es: string | null;
   description: string | null;
+  description_en: string | null;
+  description_es: string | null;
+  source_language: string | null;
   date_start: string;
   date_end: string | null;
   time: string | null;
@@ -17,24 +23,32 @@ interface EventRow {
   created_at: string;
 }
 
-function formatWeekdayDate(dateStr: string): string {
+function formatWeekdayDate(dateStr: string, locale: Locale): string {
   const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
 }
 
-function toEventCardProps(row: EventRow, showClock: boolean): EventCardProps {
+function toEventCardProps(row: EventRow, showClock: boolean, locale: Locale): EventCardProps {
+  const title = locale === "es"
+    ? (row.title_es ?? row.title)
+    : (row.title_en ?? row.title);
+
+  const description = locale === "es"
+    ? (row.description_es ?? row.description)
+    : (row.description_en ?? row.description);
+
   return {
     imageUrl:
       row.image_url ??
       "https://images.unsplash.com/photo-1516275992531-b5e19d647811?w=1080",
     category: row.category as CategoryVariant,
-    time: showClock && row.time ? row.time : (row.time ?? formatWeekdayDate(row.date_start)),
-    title: row.title,
-    description: row.description,
+    time: showClock && row.time ? row.time : (row.time ?? formatWeekdayDate(row.date_start, locale)),
+    title,
+    description,
     location: row.location,
     showClock,
     sourceUrl: row.source_url,
@@ -63,6 +77,7 @@ function getDateString(offset: number): string {
 }
 
 export async function getTodayEvents(
+  locale: Locale = "en",
   category?: string
 ): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
@@ -85,10 +100,11 @@ export async function getTodayEvents(
     return [];
   }
 
-  return (data as EventRow[]).map((row) => toEventCardProps(row, true));
+  return (data as EventRow[]).map((row) => toEventCardProps(row, true, locale));
 }
 
 export async function getTomorrowEvents(
+  locale: Locale = "en",
   category?: string
 ): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
@@ -111,10 +127,11 @@ export async function getTomorrowEvents(
     return [];
   }
 
-  return (data as EventRow[]).map((row) => toEventCardProps(row, false));
+  return (data as EventRow[]).map((row) => toEventCardProps(row, false, locale));
 }
 
 export async function getThisWeekEvents(
+  locale: Locale = "en",
   category?: string
 ): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
@@ -141,5 +158,5 @@ export async function getThisWeekEvents(
     return [];
   }
 
-  return (data as EventRow[]).map((row) => toEventCardProps(row, false));
+  return (data as EventRow[]).map((row) => toEventCardProps(row, false, locale));
 }
