@@ -25,6 +25,12 @@ export const translations = {
       noEvents: "No events scheduled",
     },
 
+    event: {
+      viewOriginal: "View Original",
+      close: "Close",
+      loading: "Loading…",
+    },
+
     // Categories
     categories: {
       music: "Music",
@@ -305,6 +311,12 @@ export const translations = {
       thisWeek: "Esta Semana",
       viewAll: "Ver todos →",
       noEvents: "No hay eventos programados",
+    },
+
+    event: {
+      viewOriginal: "Ver original",
+      close: "Cerrar",
+      loading: "Cargando…",
     },
 
     // Categories

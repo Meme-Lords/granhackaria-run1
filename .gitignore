@@ -18,6 +18,9 @@ out/
 # Build
 /build
 
+# Test coverage (Vitest v8)
+coverage/
+
 # MCP (may contain API keys)
 .mcp.json
 

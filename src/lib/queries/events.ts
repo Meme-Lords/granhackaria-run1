@@ -1,6 +1,5 @@
 import { createSupabaseServer } from "@/lib/supabase/server";
-import type { EventCardProps } from "@/components";
-import type { CategoryVariant } from "@/components";
+import type { EventCardProps, CategoryVariant } from "@/components";
 
 interface EventRow {
   id: string;
@@ -37,6 +36,7 @@ function toEventCardProps(row: EventRow, showClock: boolean): EventCardProps {
     title: row.title,
     location: row.location,
     showClock,
+    sourceUrl: row.source_url,
   };
 }
 
@@ -84,7 +84,6 @@ export async function getTomorrowEvents(): Promise<EventCardProps[]> {
 
 export async function getThisWeekEvents(): Promise<EventCardProps[]> {
   const supabase = await createSupabaseServer();
-  const today = getDateString(0);
   const tomorrow = getDateString(1);
   // End of week: 7 days from now
   const weekEnd = getDateString(7);

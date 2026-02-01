@@ -190,7 +190,7 @@ export async function parseEventFromText(
       });
       const first = message.content[0];
       if (first.type !== "text") return null;
-      rawText = first.text;
+      rawText = extractJsonText(first.text);
     }
 
     const parsed = JSON.parse(rawText) as Record<string, unknown>;
@@ -286,7 +286,7 @@ export async function parseEventFromImage(
       });
       const first = message.content[0];
       if (first.type !== "text") return null;
-      rawText = first.text;
+      rawText = extractJsonText(first.text);
     }
 
     const parsed = JSON.parse(rawText) as Record<string, unknown>;

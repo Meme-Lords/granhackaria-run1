@@ -157,4 +157,14 @@ describe("ingestFromSlack", () => {
     expect(result.errors).toBe(0);
     expect(mockParseEventFromText).not.toHaveBeenCalled();
   });
+
+  it("throws when Supabase env is missing", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "");
+
+    await expect(ingestFromSlack()).rejects.toThrow(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY"
+    );
+    expect(mockFetchChannelMessages).not.toHaveBeenCalled();
+  });
 });

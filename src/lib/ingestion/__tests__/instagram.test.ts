@@ -144,4 +144,242 @@ describe("fetchAccountPosts", () => {
     expect(posts).toHaveLength(1);
     expect(posts[0].id).toBe("recent");
   });
+
+  it("handles timestamp as ISO string", async () => {
+    const oneHourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          items: [
+            {
+              id: "1",
+              caption: { text: "Event" },
+              code: "ABC",
+              created_at: oneHourAgo,
+            },
+          ],
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("Event");
+    expect(posts[0].timestamp).toBeDefined();
+  });
+
+  it("warns when all posts are older than POSTS_DAYS_BACK", async () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const fiveDaysAgo = nowSec - 5 * 24 * 60 * 60;
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          items: [
+            { id: "old1", caption: { text: "Old" }, code: "O1", taken_at: fiveDaysAgo },
+            { id: "old2", caption: { text: "Older" }, code: "O2", taken_at: fiveDaysAgo - 86400 },
+          ],
+        },
+      }),
+    });
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(0);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("none in last 3 days")
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("warns when API returns empty posts but response has keys", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: { items: [] },
+        meta: { total: 0 },
+      }),
+    });
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(0);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("API returned 0 posts")
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("parses result as array (Instagram120 style)", async () => {
+    const oneHourAgo = recentTakenAt();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        result: [
+          {
+            id: "r1",
+            caption: { text: "From result array" },
+            code: "R1",
+            taken_at: oneHourAgo,
+          },
+        ],
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("From result array");
+  });
+
+  it("parses result.edges GraphQL style", async () => {
+    const oneHourAgo = recentTakenAt();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        result: {
+          edges: [
+            { node: { id: "e1", caption: { text: "Edge node" }, code: "E1", taken_at: oneHourAgo } },
+          ],
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("Edge node");
+  });
+
+  it("parses result.items when result is object", async () => {
+    const oneHourAgo = recentTakenAt();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        result: {
+          items: [
+            { id: "i1", caption: { text: "From result.items" }, code: "I1", taken_at: oneHourAgo },
+          ],
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("From result.items");
+  });
+
+  it("parses data.edge_owner_to_timeline_media.edges", async () => {
+    const oneHourAgo = recentTakenAt();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          edge_owner_to_timeline_media: {
+            edges: [
+              {
+                node: {
+                  id: "n1",
+                  caption: { text: "GraphQL media" },
+                  code: "N1",
+                  taken_at: oneHourAgo,
+                },
+              },
+            ],
+          },
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("GraphQL media");
+  });
+
+  it("parses data.user.edge_owner_to_timeline_media.edges", async () => {
+    const oneHourAgo = recentTakenAt();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          user: {
+            edge_owner_to_timeline_media: {
+              edges: [
+                {
+                  node: {
+                    id: "u1",
+                    caption: { text: "User timeline" },
+                    code: "U1",
+                    taken_at: oneHourAgo,
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("User timeline");
+  });
+
+  it("handles timestamp in milliseconds", async () => {
+    const oneHourAgoMs = Date.now() - 3600 * 1000;
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          items: [
+            {
+              id: "1",
+              caption: { text: "Ms timestamp" },
+              code: "MS",
+              taken_at: oneHourAgoMs,
+            },
+          ],
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].caption).toBe("Ms timestamp");
+  });
+
+  it("handles invalid date string in timestamp", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          items: [
+            {
+              id: "1",
+              caption: { text: "Bad date" },
+              code: "BD",
+              taken_at: "not-a-date",
+            },
+          ],
+        },
+      }),
+    });
+
+    const posts = await fetchAccountPosts("testuser");
+
+    expect(posts).toHaveLength(0);
+  });
 });

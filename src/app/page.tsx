@@ -16,7 +16,7 @@ export default async function EventListingsPage() {
     <div className="flex flex-col min-h-full w-full bg-[var(--background)]">
       <Header />
       <Hero />
-      <main className="flex flex-col gap-8 sm:gap-10 md:gap-12 w-full px-4 sm:px-6 md:px-12 py-6 sm:py-8">
+      <main className="flex flex-col gap-16 sm:gap-20 md:gap-24 w-full px-4 sm:px-6 md:px-12 py-6 sm:py-8">
         <EventSection titleKey="today" events={todayEvents} />
         <EventSection titleKey="tomorrow" events={tomorrowEvents} />
         <EventSection titleKey="thisWeek" events={weekEvents} />

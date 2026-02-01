@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Clock, Calendar, MapPin, ImageOff } from "lucide-react";
 import { CategoryLabel, CategoryVariant } from "./CategoryLabel";
+import { EventImageModal } from "./EventImageModal";
 
 export interface EventCardProps {
   imageUrl: string;
@@ -13,6 +14,7 @@ export interface EventCardProps {
   title: string;
   location: string;
   showClock?: boolean;
+  sourceUrl?: string | null;
 }
 
 export function EventCard({
@@ -23,13 +25,24 @@ export function EventCard({
   title,
   location,
   showClock = false,
-}: EventCardProps) {
+  sourceUrl = null,
+}: Readonly<EventCardProps>) {
   const [imageError, setImageError] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const TimeIcon = showClock ? Clock : Calendar;
 
+  const openModal = useCallback(() => setModalOpen(true), []);
+  const closeModal = useCallback(() => setModalOpen(false), []);
+
   return (
-    <article className="flex flex-col w-full overflow-hidden rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)]">
-      <div className="relative w-full h-[140px] sm:h-[160px] bg-[var(--muted)]">
+    <>
+      <button
+        type="button"
+        onClick={openModal}
+        className="flex flex-col w-full overflow-hidden rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)] cursor-pointer hover:border-[var(--primary)]/50 transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
+        aria-label={title}
+      >
+        <div className="relative w-full h-[140px] sm:h-[160px] bg-[var(--muted)]">
         {imageError ? (
           <div
             className="absolute inset-0 flex items-center justify-center text-[var(--muted-foreground)]"
@@ -67,6 +80,15 @@ export function EventCard({
           </span>
         </div>
       </div>
-    </article>
+    </button>
+
+      <EventImageModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        imageUrl={imageUrl}
+        imageAlt={imageAlt || title}
+        sourceUrl={sourceUrl}
+      />
+    </>
   );
 }
