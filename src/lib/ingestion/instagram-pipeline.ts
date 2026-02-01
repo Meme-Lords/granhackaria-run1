@@ -2,7 +2,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
-import { getInstagramAccountsFromStatsig } from "@/lib/statsig/server";
+import { getInstagramAccountsFromStatsig, getPostsDaysBackFromStatsig } from "@/lib/statsig/server";
 import { fetchAccountPosts } from "./instagram";
 import { parseEventFromText, parseEventFromImage } from "./parser";
 import type { RawEvent } from "./types";
@@ -86,10 +86,16 @@ export async function ingestFromInstagram(
 ): Promise<PipelineResult> {
   const supabase = createSupabaseAdmin();
   const result: PipelineResult = { inserted: 0, skipped: 0, errors: 0 };
+  const daysBack = await getPostsDaysBackFromStatsig();
+  const delayMs = Math.max(0, Number(process.env.PARSER_DELAY_MS) || 0);
+  console.log(`[pipeline] posts_days_back: ${daysBack} (Statsig instagram_accounts.posts_days_back or env)`);
+  if (delayMs > 0) {
+    console.log(`[pipeline] delay between posts: ${delayMs}ms (PARSER_DELAY_MS)`);
+  }
 
   for (const account of accounts) {
     console.log(`[pipeline] Fetching posts from @${account}...`);
-    const posts = await fetchAccountPosts(account);
+    const posts = await fetchAccountPosts(account, 10, { daysBack });
     console.log(`[pipeline] Got ${posts.length} posts from @${account}`);
 
     for (const post of posts) {
@@ -148,13 +154,17 @@ export async function ingestFromInstagram(
       } else {
         result.skipped++;
       }
+
+      if (delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
   }
 
   return result;
 }
 
-// Run as standalone script: npx tsx src/lib/ingestion/instagram-pipeline.ts
+// Run as standalone script: npx tsx src/lib/ingestion/instagram-pipeline.ts [--timeout=600]
 const isMainModule = process.argv[1]?.includes("instagram-pipeline") ?? false;
 
 if (isMainModule) {
@@ -211,10 +221,28 @@ if (isMainModule) {
       process.exit(1);
     }
 
-    console.log("[pipeline] Starting ingestion…");
+    const timeoutArg = process.argv.find((a) => a.startsWith("--timeout="));
+    const timeoutSeconds = timeoutArg ? Number(timeoutArg.slice("--timeout=".length)) : undefined;
+    const timeoutMs = timeoutSeconds != null && Number.isFinite(timeoutSeconds) ? timeoutSeconds * 1000 : undefined;
+
+    if (timeoutMs != null) {
+      console.log(`[pipeline] Starting ingestion (timeout: ${timeoutMs / 1000}s)…`);
+    } else {
+      console.log("[pipeline] Starting ingestion…");
+    }
+
+    const timeoutPromise =
+      timeoutMs != null
+        ? new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error(`Ingestion timed out after ${timeoutMs / 1000}s`)), timeoutMs);
+          })
+        : null;
 
     try {
-      const result = await ingestFromInstagram(accounts);
+      const result =
+        timeoutPromise != null
+          ? await Promise.race([ingestFromInstagram(accounts), timeoutPromise])
+          : await ingestFromInstagram(accounts);
       console.log("\n[pipeline] Done!");
       console.log(`  Inserted: ${result.inserted}`);
       console.log(`  Skipped:  ${result.skipped}`);

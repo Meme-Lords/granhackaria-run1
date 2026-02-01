@@ -55,6 +55,37 @@ Rules:
 
 type Provider = "openai" | "anthropic";
 
+const MAX_RETRIES_ON_RATE_LIMIT = 3;
+/** Wait 1 min 5 sec on 429 before resuming (OpenAI TPM reset is typically ~1 min). */
+const RATE_LIMIT_WAIT_MS = 65_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRateLimitError(err: unknown): boolean {
+  if (err == null || typeof err !== "object") return false;
+  const o = err as { status?: number; code?: string };
+  return o.status === 429 || o.code === "rate_limit_exceeded";
+}
+
+async function withRetryOn429<T>(fn: () => Promise<T>): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES_ON_RATE_LIMIT; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (!isRateLimitError(err) || attempt === MAX_RETRIES_ON_RATE_LIMIT) throw err;
+      console.warn(
+        `[parser] Rate limited (429), pausing 1m 5s before resuming (retry ${attempt + 1}/${MAX_RETRIES_ON_RATE_LIMIT})`
+      );
+      await sleep(RATE_LIMIT_WAIT_MS);
+    }
+  }
+  throw lastError;
+}
+
 let openaiClient: OpenAI | null = null;
 let anthropicClient: Anthropic | null = null;
 
@@ -168,26 +199,30 @@ export async function parseEventFromText(
     if (provider === "openai") {
       const openai = getOpenAI();
       if (!openai) return null;
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        max_tokens: 512,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userContent },
-        ],
-      });
+      const completion = await withRetryOn429(() =>
+        openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          max_tokens: 512,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userContent },
+          ],
+        })
+      );
       const content = completion.choices[0]?.message?.content;
       if (!content) return null;
       rawText = extractJsonText(content);
     } else {
       const anthropic = getAnthropic();
       if (!anthropic) return null;
-      const message = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 512,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userContent }],
-      });
+      const message = await withRetryOn429(() =>
+        anthropic.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 512,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userContent }],
+        })
+      );
       const first = message.content[0];
       if (first.type !== "text") return null;
       rawText = extractJsonText(first.text);
@@ -232,23 +267,25 @@ export async function parseEventFromImage(
         return null;
       }
       const dataUrl = `data:${imageData.mediaType};base64,${imageData.data}`;
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        max_tokens: 512,
-        messages: [
-          { role: "system", content: VISION_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
-              },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-      });
+      const completion = await withRetryOn429(() =>
+        openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          max_tokens: 512,
+          messages: [
+            { role: "system", content: VISION_SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
+                },
+                { type: "image_url", image_url: { url: dataUrl } },
+              ],
+            },
+          ],
+        })
+      );
       const content = completion.choices[0]?.message?.content;
       if (!content) return null;
       rawText = extractJsonText(content);
@@ -260,30 +297,32 @@ export async function parseEventFromImage(
         console.warn("[parser] Failed to fetch image for vision:", imageUrl.slice(0, 50));
         return null;
       }
-      const message = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 512,
-        system: VISION_SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: imageData.mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
-                  data: imageData.data,
+      const message = await withRetryOn429(() =>
+        anthropic.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 512,
+          system: VISION_SYSTEM_PROMPT,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: imageData.mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
+                    data: imageData.data,
+                  },
                 },
-              },
-              {
-                type: "text",
-                text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
-              },
-            ],
-          },
-        ],
-      });
+                {
+                  type: "text",
+                  text: `Today's date is ${today}.${contextLine}\n\nAnalyze the image and return JSON.`,
+                },
+              ],
+            },
+          ],
+        })
+      );
       const first = message.content[0];
       if (first.type !== "text") return null;
       rawText = extractJsonText(first.text);

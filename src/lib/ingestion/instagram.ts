@@ -2,8 +2,8 @@ import type { RawInstagramPost } from "./types";
 
 const RAPIDAPI_HOST = "instagram120.p.rapidapi.com";
 
-/** Only fetch posts from the last N days (by post timestamp). */
-const POSTS_DAYS_BACK = 3;
+/** Default: only fetch posts from the last N days (by post timestamp). Overridable via options. */
+const DEFAULT_POSTS_DAYS_BACK = 3;
 
 // Instagram120 API: POST /api/instagram/posts with body { username, maxId }
 // Response shape varies by API version; we try multiple paths and timestamp formats.
@@ -121,10 +121,25 @@ function postToRaw(post: Instagram120Post, index: number, username: string): Raw
   };
 }
 
+export interface FetchAccountPostsOptions {
+  count?: number;
+  daysBack?: number;
+}
+
 export async function fetchAccountPosts(
   username: string,
-  count = 10
+  count = 10,
+  options?: FetchAccountPostsOptions | number
 ): Promise<RawInstagramPost[]> {
+  const opts: FetchAccountPostsOptions =
+    options == null
+      ? { count, daysBack: DEFAULT_POSTS_DAYS_BACK }
+      : typeof options === "number"
+        ? { count: options, daysBack: DEFAULT_POSTS_DAYS_BACK }
+        : { count: count ?? options.count ?? 10, daysBack: options.daysBack ?? DEFAULT_POSTS_DAYS_BACK };
+  const daysBack = opts.daysBack ?? DEFAULT_POSTS_DAYS_BACK;
+  const limit = opts.count ?? count ?? 10;
+
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) {
     console.error("[instagram] RAPIDAPI_KEY is not set");
@@ -158,7 +173,7 @@ export async function fetchAccountPosts(
     const allItems = extractPostsArray(json);
 
     const cutoffSec =
-      Math.floor(Date.now() / 1000) - POSTS_DAYS_BACK * 24 * 60 * 60;
+      Math.floor(Date.now() / 1000) - daysBack * 24 * 60 * 60;
     const recentItems = allItems.filter((item) => {
       const sec = getTakenAtSeconds(item);
       return sec !== null && sec >= cutoffSec;
@@ -167,7 +182,7 @@ export async function fetchAccountPosts(
     if (allItems.length > 0 && recentItems.length === 0) {
       const ts = getTakenAtSeconds(allItems[0]);
       console.warn(
-        `[instagram] ${cleanUsername}: ${allItems.length} posts from API, none in last ${POSTS_DAYS_BACK} days (sample taken_at=${ts ?? "n/a"})`
+        `[instagram] ${cleanUsername}: ${allItems.length} posts from API, none in last ${daysBack} days (sample taken_at=${ts ?? "n/a"})`
       );
     }
     if (allItems.length === 0 && Object.keys(json).length > 0) {
@@ -176,7 +191,7 @@ export async function fetchAccountPosts(
       );
     }
 
-    return recentItems.slice(0, count).map((item, index) =>
+    return recentItems.slice(0, limit).map((item, index) =>
       postToRaw(item, index, cleanUsername)
     );
   } catch (error) {

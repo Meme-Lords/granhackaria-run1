@@ -104,3 +104,22 @@ export async function getInstagramAccountsFromStatsig(): Promise<string[]> {
     .map((a) => a.trim())
     .filter(Boolean);
 }
+
+/**
+ * Resolve "posts_days_back" from Statsig dynamic config "instagram_accounts",
+ * falling back to INSTAGRAM_POSTS_DAYS_BACK env or 3. Used to filter posts by taken_at.
+ */
+export async function getPostsDaysBackFromStatsig(): Promise<number> {
+  const envFallback = process.env.INSTAGRAM_POSTS_DAYS_BACK;
+  const envNum = envFallback != null && envFallback !== "" ? Number(envFallback) : NaN;
+  const fallback = Number.isFinite(envNum) && envNum > 0 ? envNum : 3;
+
+  const value = await getConfigValue<number>(
+    INSTAGRAM_CONFIG_NAME,
+    "posts_days_back",
+    fallback,
+    null,
+  );
+  const n = typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback;
+  return Math.floor(n);
+}
