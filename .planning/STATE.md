@@ -2,11 +2,22 @@
 
 ## Current Status
 
-**Project Phase:** Phase 05 — Scheduling (completed)
+**Project Phase:** Phase 08 — Bilingual Event Content (completed)
 **Last Updated:** 2026-02-01
-**Next Step:** Execute Phase 06 (if planned)
+**Next Step:** Run migration script, apply DB migration, then Phase 09+
 
 ## Completed Phases
+
+### Phase 08: Bilingual Event Content
+- Added bilingual columns (title_en, title_es, description_en, description_es, source_language) to events table
+- Updated AI parser to extract both English and Spanish in a single API call
+- Updated Instagram and Slack pipelines to store bilingual fields
+- Made query layer locale-aware with fallback to legacy columns
+- Server-side locale from cookies, synced from I18nProvider
+- Created batch migration script for existing events
+- Added LocaleMetadata component for html lang and document title
+- 83 tests passing (added locale selection, fallback, and Spanish date tests)
+- See `.planning/phases/08-bilingual-events/08-SUMMARY.md`
 
 ### Phase 05: Scheduling
 - Created cron API route at `/api/cron/ingest` with CRON_SECRET authorization
@@ -63,7 +74,12 @@
 - Slack fetcher via @slack/web-api with incremental fetch support
 - Cron API route for automated ingestion (`/api/cron/ingest`)
 - Vercel cron configuration (every 15 minutes)
-- Vitest test suite (37 tests)
+- Bilingual event content (title_en/title_es, description_en/description_es)
+- Locale-aware queries (pass locale, select bilingual columns with fallback)
+- Server-side locale detection via cookies
+- LocaleMetadata component (html lang, document title, meta description)
+- Batch migration script for existing events (`scripts/migrate-events-bilingual.ts`)
+- Vitest test suite (83 tests)
 - GSD and Ralphy tooling installed
 
 ## Decisions
