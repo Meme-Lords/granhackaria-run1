@@ -112,7 +112,10 @@ describe("GET /api/cron/ingest", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.instagram).toEqual({ error: "INSTAGRAM_ACCOUNTS not configured" });
+    expect(body.instagram).toEqual({
+      error:
+        "Instagram accounts not configured (Statsig instagram_accounts or INSTAGRAM_ACCOUNTS)",
+    });
     expect(body.slack).toEqual({ inserted: 0, skipped: 0, errors: 0 });
   });
 });
