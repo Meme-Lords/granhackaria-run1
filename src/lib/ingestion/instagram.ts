@@ -165,25 +165,14 @@ export async function fetchAccountPosts(
     });
 
     if (allItems.length > 0 && recentItems.length === 0) {
-      const sample = allItems[0] as UnknownRecord;
+      const ts = getTakenAtSeconds(allItems[0]);
       console.warn(
-        `[instagram] ${cleanUsername}: API returned ${allItems.length} posts but none in last ${POSTS_DAYS_BACK} days. ` +
-          `Sample post keys: ${Object.keys(sample).join(", ")}. ` +
-          `Sample timestamp fields: taken_at=${sample.taken_at}, taken_at_timestamp=${sample.taken_at_timestamp}, timestamp=${sample.timestamp}`
+        `[instagram] ${cleanUsername}: ${allItems.length} posts from API, none in last ${POSTS_DAYS_BACK} days (sample taken_at=${ts ?? "n/a"})`
       );
     }
     if (allItems.length === 0 && Object.keys(json).length > 0) {
-      const resultVal = json.result;
-      const resultInfo =
-        resultVal === undefined
-          ? "result undefined"
-          : Array.isArray(resultVal)
-            ? `result is array (length ${resultVal.length})`
-            : typeof resultVal === "object" && resultVal !== null
-              ? `result keys: ${Object.keys(resultVal as UnknownRecord).join(", ")}`
-              : `result type: ${typeof resultVal}`;
       console.warn(
-        `[instagram] ${cleanUsername}: API response had 0 posts. Top-level keys: ${Object.keys(json).join(", ")}. ${resultInfo}`
+        `[instagram] ${cleanUsername}: API returned 0 posts (response has keys: ${Object.keys(json).slice(0, 5).join(", ")}${Object.keys(json).length > 5 ? "…" : ""})`
       );
     }
 
