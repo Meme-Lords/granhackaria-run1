@@ -3,6 +3,7 @@
 import { CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "./LanguageToggle";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const { t } = useI18n();
@@ -15,7 +16,8 @@ export function Header() {
           EventosGC
         </span>
       </a>
-      <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        <ThemeToggle />
         <nav className="flex items-center gap-3 sm:gap-4 md:gap-6">
           <a
             href="/"
