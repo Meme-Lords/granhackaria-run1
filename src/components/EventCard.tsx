@@ -12,6 +12,7 @@ export interface EventCardProps {
   category: CategoryVariant;
   time: string;
   title: string;
+  description?: string | null;
   location: string;
   showClock?: boolean;
   sourceUrl?: string | null;
@@ -23,6 +24,7 @@ export function EventCard({
   category,
   time,
   title,
+  description,
   location,
   showClock = false,
   sourceUrl = null,
@@ -73,6 +75,11 @@ export function EventCard({
         <h3 className="font-primary text-sm sm:text-base font-semibold text-[var(--foreground)]">
           {title}
         </h3>
+        {description ? (
+          <p className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] line-clamp-2">
+            {description}
+          </p>
+        ) : null}
         <div className="flex items-center gap-1.5">
           <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
           <span className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)]">

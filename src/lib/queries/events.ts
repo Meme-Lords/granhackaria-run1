@@ -34,6 +34,7 @@ function toEventCardProps(row: EventRow, showClock: boolean): EventCardProps {
     category: row.category as CategoryVariant,
     time: showClock && row.time ? row.time : (row.time ?? formatWeekdayDate(row.date_start)),
     title: row.title,
+    description: row.description,
     location: row.location,
     showClock,
     sourceUrl: row.source_url,

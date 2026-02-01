@@ -72,7 +72,7 @@ export function EventImageModal({
         aria-label={t.event.close}
       />
       <div className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 pointer-events-none z-10">
-        <div className="flex flex-col w-full min-w-0 max-w-4xl max-h-[90vh] rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-xl pointer-events-auto">
+        <div className="flex flex-col w-full md:w-max min-w-0 max-w-4xl max-h-[90vh] rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-xl pointer-events-auto">
         <div className="flex justify-end p-2 border-b border-[var(--border)]">
           <button
             type="button"
@@ -84,7 +84,7 @@ export function EventImageModal({
           </button>
         </div>
         <div className="relative flex-1 min-h-0 min-w-0 flex flex-col overflow-auto">
-          <div className="relative w-full min-h-[200px] bg-[var(--muted)] flex justify-center items-center">
+          <div className="relative w-full min-h-[200px] min-w-[200px] bg-[var(--muted)] flex justify-center items-center">
             {!imageLoaded && (
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--muted-foreground)]"
@@ -98,7 +98,7 @@ export function EventImageModal({
             <img
               src={imageUrl}
               alt={imageAlt}
-              className={`w-full h-auto max-h-[70vh] object-contain object-center transition-opacity duration-200 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+              className={`w-full md:w-auto md:max-w-full h-auto max-h-[70vh] object-contain object-center transition-opacity duration-200 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageLoaded(true)}
             />
