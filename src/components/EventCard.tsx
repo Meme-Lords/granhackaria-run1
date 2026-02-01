@@ -41,7 +41,7 @@ export function EventCard({
       <button
         type="button"
         onClick={openModal}
-        className="flex flex-col w-full overflow-hidden rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)] cursor-pointer hover:border-[var(--primary)]/50 transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
+        className="flex h-full min-h-0 flex-col w-full overflow-hidden rounded-[var(--radius-m)] border border-[var(--border)] bg-[var(--card)] cursor-pointer hover:border-[var(--primary)]/50 transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
         aria-label={title}
       >
         <div className="relative w-full h-[140px] sm:h-[160px] bg-[var(--muted)]">
@@ -62,7 +62,7 @@ export function EventCard({
           />
         )}
       </div>
-      <div className="flex flex-col gap-2 sm:gap-3 p-3 sm:p-4">
+      <div className="flex flex-1 flex-col gap-2 sm:gap-3 p-3 sm:p-4 min-h-0">
         <div className="flex items-center justify-between w-full">
           <CategoryLabel category={category} />
           <div className="flex items-center gap-1.5">
@@ -72,16 +72,16 @@ export function EventCard({
             </span>
           </div>
         </div>
-        <h3 className="font-primary text-sm sm:text-base font-semibold text-[var(--foreground)]">
+        <h3 className="font-primary text-base font-semibold text-[var(--foreground)] mb-2 sm:mb-3">
           {title}
         </h3>
         {description ? (
-          <p className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)] line-clamp-2">
+          <p className="font-secondary text-sm text-[var(--muted-foreground)] line-clamp-2 mb-2 sm:mb-3">
             {description}
           </p>
         ) : null}
-        <div className="flex items-center gap-1.5">
-          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
+        <div className="flex items-center gap-1.5 mt-auto">
+          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)] shrink-0" />
           <span className="font-secondary text-xs sm:text-[13px] text-[var(--muted-foreground)]">
             {location}
           </span>
