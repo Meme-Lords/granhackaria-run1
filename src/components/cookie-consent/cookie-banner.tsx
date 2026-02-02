@@ -80,7 +80,7 @@ export function CookieBanner({ className }: CookieBannerProps) {
                     <Settings className="h-4 w-4" />
                     {t.cookieBanner.customize}
                   </Button>
-                  <Button size="sm" onClick={rejectAll}>
+                  <Button variant="outline" size="sm" onClick={rejectAll} className="bg-transparent">
                     {t.cookieBanner.rejectAll}
                   </Button>
                   <Button size="sm" onClick={acceptAll}>

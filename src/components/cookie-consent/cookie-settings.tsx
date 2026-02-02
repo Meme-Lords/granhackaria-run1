@@ -67,7 +67,7 @@ export function CookieSettings({ className }: CookieSettingsProps) {
 
   return (
     <Dialog open={isSettingsOpen} onOpenChange={(open) => !open && closeSettings()}>
-      <DialogContent className={cn("sm:max-w-lg", className)}>
+      <DialogContent className={cn("sm:max-w-lg max-h-[85vh] flex flex-col", className)}>
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
@@ -84,7 +84,7 @@ export function CookieSettings({ className }: CookieSettingsProps) {
 
         <div
           className={cn(
-            "space-y-4 py-4 px-3 max-h-[60vh] scrollbar-thin-visible"
+            "space-y-4 py-3 px-3 max-h-[40vh] overflow-y-auto scrollbar-thin-visible min-h-0"
           )}
         >
           {categories.map((category) => {
