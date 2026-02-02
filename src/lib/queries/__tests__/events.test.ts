@@ -71,11 +71,12 @@ describe("getTodayEvents", () => {
       title: "Jazz Night",
       description: "Live jazz",
       location: "Vegueta",
-      time: "20:00",
       category: "music",
       showClock: true,
       sourceUrl: "https://instagram.com/p/1",
     });
+    expect(result[0].time).toMatch(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/);
+    expect(result[0].time).toContain("20:00");
     expect(result[0].imageUrl).toBe("https://example.com/1.jpg");
   });
 

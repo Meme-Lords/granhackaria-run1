@@ -41,12 +41,18 @@ function toEventCardProps(row: EventRow, showClock: boolean, locale: Locale): Ev
     ? (row.description_es ?? row.description)
     : (row.description_en ?? row.description);
 
+  const startDateStr = formatWeekdayDate(row.date_start, locale);
+  const time =
+    row.time != null && row.time !== ""
+      ? `${startDateStr} · ${row.time}`
+      : startDateStr;
+
   return {
     imageUrl:
       row.image_url ??
       "https://images.unsplash.com/photo-1516275992531-b5e19d647811?w=1080",
     category: row.category as CategoryVariant,
-    time: showClock && row.time ? row.time : (row.time ?? formatWeekdayDate(row.date_start, locale)),
+    time,
     title,
     description,
     location: row.location,
