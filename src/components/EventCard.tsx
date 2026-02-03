@@ -103,7 +103,7 @@ export function EventCard({
             ) : null}
           </div>
         </div>
-        <h3 className="font-primary text-base font-semibold text-[var(--foreground)] mb-2 sm:mb-3">
+        <h3 className="font-primary text-lg font-semibold text-[var(--foreground)] mb-2 sm:mb-3">
           {title}
         </h3>
         {description ? (

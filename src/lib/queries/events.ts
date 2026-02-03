@@ -20,6 +20,7 @@ interface EventRow {
   image_url: string | null;
   source: string;
   source_url: string | null;
+  source_url_gone: boolean | null;
   created_at: string;
 }
 
@@ -94,6 +95,7 @@ export async function getTodayEvents(
     .from("events")
     .select("*")
     .eq("date_start", today)
+    .or("source_url_gone.is.null,source_url_gone.eq.false")
     .order("time", { ascending: true });
 
   if (isValidCategory(category)) {
@@ -121,6 +123,7 @@ export async function getTomorrowEvents(
     .from("events")
     .select("*")
     .eq("date_start", tomorrow)
+    .or("source_url_gone.is.null,source_url_gone.eq.false")
     .order("time", { ascending: true });
 
   if (isValidCategory(category)) {
@@ -151,6 +154,7 @@ export async function getThisWeekEvents(
     .select("*")
     .gt("date_start", tomorrow)
     .lte("date_start", weekEnd)
+    .or("source_url_gone.is.null,source_url_gone.eq.false")
     .order("date_start", { ascending: true })
     .order("time", { ascending: true });
 

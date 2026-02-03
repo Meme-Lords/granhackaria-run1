@@ -16,7 +16,7 @@ export const translations = {
       location: "Las Palmas de Gran Canaria",
       title: "Discover Local Events",
       subtitle:
-        "Find concerts, exhibitions, workshops and more happening in your city",
+        "Find concerts, exhibitions, workshops and more happening in Gran Canaria",
     },
 
     // Event sections

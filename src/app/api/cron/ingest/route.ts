@@ -3,6 +3,7 @@ import { getInstagramAccountsFromStatsig } from "@/lib/statsig/server";
 import { ingestFromInstagram } from "@/lib/ingestion/instagram-pipeline";
 import { ingestFromSlack } from "@/lib/ingestion/slack-pipeline";
 import { ingestFromMeetup } from "@/lib/ingestion/meetup-pipeline";
+import { markGoneSourceUrls } from "@/lib/mark-gone-source-urls";
 
 // Vercel cron: Hobby plan runs once daily, Pro plan supports custom schedules.
 // maxDuration in seconds for Vercel serverless function timeout.
@@ -76,6 +77,19 @@ export async function GET(request: Request): Promise<NextResponse> {
     console.log("[cron/ingest] Skipping Meetup: no OAuth or Apify credentials");
   }
 
+  // Mark events whose source_url returns 404/410 so they are hidden from the list
+  let markGone: { checked: number; marked: number; errors: number } | { error: string } = {
+    error: "not run",
+  };
+  try {
+    markGone = await markGoneSourceUrls();
+    console.log("[cron/ingest] Mark gone source URLs:", markGone);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[cron/ingest] Mark gone source URLs failed:", message);
+    markGone = { error: message };
+  }
+
   const endTime = new Date().toISOString();
   console.log(`[cron/ingest] Finished ingestion at ${endTime}`);
 
@@ -83,6 +97,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     instagram,
     slack,
     meetup,
+    markGoneSourceUrls: markGone,
     timestamp: { start: startTime, end: endTime },
   });
 }

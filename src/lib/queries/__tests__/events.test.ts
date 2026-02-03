@@ -2,14 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 type QueryResult = { data: unknown; error: { message: string } | null };
 
-const { queryResult, mockClient } = vi.hoisted(() => {
+const SOURCE_URL_GONE_FILTER = "source_url_gone.is.null,source_url_gone.eq.false";
+
+const { queryResult, mockClient, orMock } = vi.hoisted(() => {
   const queryResult: QueryResult = { data: [], error: null };
   const terminalOrder = vi.fn().mockImplementation(() => Promise.resolve(queryResult));
   const eqOrderChain = { order: terminalOrder };
-  const eqChain = { eq: vi.fn().mockReturnValue(eqOrderChain) };
-  const weekSecondOrder = { order: terminalOrder };
-  const weekFirstOrder = { order: vi.fn().mockReturnValue(weekSecondOrder) };
-  const lteChain = { lte: vi.fn().mockReturnValue(weekFirstOrder) };
+  const orChain = { order: terminalOrder };
+  const orMock = vi.fn().mockReturnValue(orChain);
+  const eqThenOr = { or: orMock };
+  const eqChain = { eq: vi.fn().mockReturnValue(eqThenOr) };
+  const weekFirstOrder = { order: terminalOrder };
+  const weekOrChain = { order: vi.fn().mockReturnValue(weekFirstOrder) };
+  const lteChain = { lte: vi.fn().mockReturnValue({ or: vi.fn().mockReturnValue(weekOrChain) }) };
   const gtChain = { gt: vi.fn().mockReturnValue(lteChain) };
   const selectChain = {
     select: vi.fn().mockReturnValue({
@@ -18,7 +23,7 @@ const { queryResult, mockClient } = vi.hoisted(() => {
     }),
   };
   const mockClient = { from: vi.fn().mockReturnValue(selectChain) };
-  return { queryResult, mockClient };
+  return { queryResult, mockClient, orMock };
 });
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -59,6 +64,7 @@ describe("getTodayEvents", () => {
         image_url: "https://example.com/1.jpg",
         source: "instagram",
         source_url: "https://instagram.com/p/1",
+        source_url_gone: false,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
@@ -101,6 +107,7 @@ describe("getTodayEvents", () => {
         image_url: "https://example.com/1.jpg",
         source: "instagram",
         source_url: "https://instagram.com/p/1",
+        source_url_gone: false,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
@@ -133,6 +140,7 @@ describe("getTodayEvents", () => {
         image_url: null,
         source: "instagram",
         source_url: null,
+        source_url_gone: null,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
@@ -165,6 +173,7 @@ describe("getTodayEvents", () => {
         image_url: null,
         source: "slack",
         source_url: null,
+        source_url_gone: null,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
@@ -197,6 +206,7 @@ describe("getTodayEvents", () => {
         image_url: null,
         source: "slack",
         source_url: null,
+        source_url_gone: null,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
@@ -206,6 +216,38 @@ describe("getTodayEvents", () => {
 
     // Spanish date should contain Spanish weekday abbreviations
     expect(result[0].time).toMatch(/^(lun|mar|mié|jue|vie|sáb|dom)/);
+  });
+
+  it("excludes events with source_url_gone (query uses source_url_gone filter)", async () => {
+    const today = new Date().toISOString().split("T")[0];
+    queryResult.data = [
+      {
+        id: "1",
+        title: "Live",
+        title_en: "Live",
+        title_es: "En vivo",
+        description: null,
+        description_en: null,
+        description_es: null,
+        source_language: "en",
+        date_start: today,
+        date_end: null,
+        time: "20:00",
+        location: "Vegueta",
+        category: "music",
+        ticket_price: null,
+        image_url: null,
+        source: "instagram",
+        source_url: "https://instagram.com/p/1",
+        source_url_gone: false,
+        created_at: "2026-02-01T00:00:00Z",
+      },
+    ];
+    queryResult.error = null;
+
+    await getTodayEvents("en");
+
+    expect(orMock).toHaveBeenCalledWith(SOURCE_URL_GONE_FILTER);
   });
 
   it("returns empty array when query errors", async () => {
@@ -243,6 +285,7 @@ describe("getTomorrowEvents", () => {
         image_url: null,
         source: "instagram",
         source_url: null,
+        source_url_gone: null,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
@@ -289,6 +332,7 @@ describe("getThisWeekEvents", () => {
         image_url: null,
         source: "instagram",
         source_url: "https://instagram.com/p/4",
+        source_url_gone: false,
         created_at: "2026-02-01T00:00:00Z",
       },
     ];
